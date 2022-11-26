@@ -27,7 +27,9 @@ namespace Slender.AssemblyScanner
             return _List;
         }
 
-        protected virtual void VisitAbstract(Type abstractType, IEnumerable<Type> implementationTypes) { }
+        protected virtual void VisitAbstract(Type abstractType) { }
+
+        protected virtual void VisitAbstractAndImplementations(Type abstractType, IEnumerable<Type> implementationTypes) { }
 
         public virtual void VisitAssemblyScan(AssemblyScan scan)
         {
@@ -38,27 +40,10 @@ namespace Slender.AssemblyScanner
 
             foreach (var _Type in scan.Types)
             {
-                if (_Type.IsEnum)
-                    this.VisitEnumeration(_Type);
+                this.VisitType(_Type);
 
-                else if (_Type.IsInterface) // Needs to be before IsAbstract, as an Interface is Abstract.
-                    _ = GetOrAdd(_InterfaceImplementations, _Type);
-
-                else if (_Type.IsAbstract)
+                if (_Type.IsClass && !_Type.IsAbstract && _Type.BaseType != typeof(MulticastDelegate))
                 {
-                    // A Static class is an Abstract Sealed Class.
-                    if (!_Type.IsSealed) _ = GetOrAdd(_AbstractImplementations, _Type);
-                }
-                else if (_Type.IsValueType)
-                    this.VisitValueType(_Type);
-
-                else if (_Type.BaseType == typeof(MulticastDelegate)) // Needs to be before IsClass, as a delegate is a Class.
-                    this.VisitDelegate(_Type);
-
-                else if (_Type.IsClass)
-                {
-                    this.VisitImplementation(_Type);
-
                     foreach (var _AbstractBase in GetAbstractBases(_Type))
                         GetOrAdd(_AbstractImplementations, _AbstractBase).Add(_Type);
 
@@ -68,10 +53,10 @@ namespace Slender.AssemblyScanner
             }
 
             foreach (var _AbstractAndImplementations in _AbstractImplementations)
-                this.VisitAbstract(_AbstractAndImplementations.Key, _AbstractAndImplementations.Value);
+                this.VisitAbstractAndImplementations(_AbstractAndImplementations.Key, _AbstractAndImplementations.Value);
 
             foreach (var _IntercaceAndImplementations in _InterfaceImplementations)
-                this.VisitInterface(_IntercaceAndImplementations.Key, _IntercaceAndImplementations.Value);
+                this.VisitInterfaceAndImplementations(_IntercaceAndImplementations.Key, _IntercaceAndImplementations.Value);
         }
 
         protected virtual void VisitDelegate(Type delegateType) { }
@@ -80,7 +65,32 @@ namespace Slender.AssemblyScanner
 
         protected virtual void VisitImplementation(Type implementationType) { }
 
-        protected virtual void VisitInterface(Type interfaceType, IEnumerable<Type> implementationTypes) { }
+        protected virtual void VisitInterface(Type interfaceType) { }
+
+        protected virtual void VisitInterfaceAndImplementations(Type interfaceType, IEnumerable<Type> implementationTypes) { }
+
+        protected virtual void VisitType(Type type)
+        {
+            if (type.IsEnum)
+                this.VisitEnumeration(type);
+
+            else if (type.IsInterface) // Needs to be before IsAbstract, as an Interface is Abstract.
+                this.VisitInterface(type);
+
+            else if (type.IsAbstract)
+            {
+                // A Static class is an Abstract Sealed Class.
+                if (!type.IsSealed) this.VisitAbstract(type);
+            }
+            else if (type.IsValueType)
+                this.VisitValueType(type);
+
+            else if (type.BaseType == typeof(MulticastDelegate)) // Needs to be before IsClass, as a delegate is a Class.
+                this.VisitDelegate(type);
+
+            else if (type.IsClass)
+                this.VisitImplementation(type);
+        }
 
         protected virtual void VisitValueType(Type valueType) { }
 
