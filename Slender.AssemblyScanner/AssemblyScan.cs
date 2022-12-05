@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -22,17 +23,15 @@ namespace Slender.AssemblyScanner
 
         #region - - - - - - Methods - - - - - -
 
+        public static AssemblyScan FromAssemblies(IEnumerable<Assembly> assemblies)
+            => assemblies is null
+                ? throw new ArgumentNullException(nameof(assemblies))
+                : new AssemblyScan { Types = assemblies.Where(a => a != null).SelectMany(a => a.GetTypes()).ToArray() };
+
         public static AssemblyScan FromAssemblies(Assembly assembly, params Assembly[] additionalAssembliesToScan)
             => assembly is null
                 ? throw new ArgumentNullException(nameof(assembly))
-                : new AssemblyScan
-                {
-                    Types = additionalAssembliesToScan
-                                .Where(a => a != null)
-                                .Union(new[] { assembly })
-                                .SelectMany(a => a.GetTypes())
-                                .ToArray()
-                };
+                : FromAssemblies(additionalAssembliesToScan.Where(a => a != null).Union(new[] { assembly }));
 
         public static AssemblyScan FromAssembly(Assembly assembly)
             => FromAssemblies(assembly);
