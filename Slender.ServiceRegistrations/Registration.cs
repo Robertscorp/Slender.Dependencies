@@ -42,15 +42,6 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
-        internal Registration UpdateLifetime(RegistrationLifetime lifetime)
-        {
-            if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
-
-            this.m_Context.Behaviour.UpdateLifetime(this.m_Context, lifetime);
-
-            return this;
-        }
-
         public Registration WithImplementationFactory(Func<object> implementationFactory)
         {
             if (implementationFactory is null) throw new ArgumentNullException(nameof(implementationFactory));
@@ -69,6 +60,15 @@ namespace Slender.ServiceRegistrations
                 throw new Exception($"{this.m_Context.Lifetime} Lifetime does not allow implementation instances.");
 
             this.m_Context.Behaviour.UpdateImplementationInstance(this.m_Context, implementationInstance);
+
+            return this;
+        }
+
+        public Registration WithLifetime(RegistrationLifetime lifetime)
+        {
+            if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
+
+            this.m_Context.Behaviour.UpdateLifetime(this.m_Context, lifetime);
 
             return this;
         }
