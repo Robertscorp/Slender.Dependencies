@@ -4,7 +4,7 @@ using System;
 namespace Slender.ServiceRegistrations.Visitors
 {
 
-    public class ServiceScanVisitor : AssemblyScanVisitor
+    internal class ServiceScanVisitor : AssemblyScanVisitor
     {
 
         #region - - - - - - Properties - - - - - -
