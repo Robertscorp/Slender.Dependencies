@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Slender.ServiceRegistrations
 {
@@ -33,18 +34,7 @@ namespace Slender.ServiceRegistrations
         {
             var _AssemblyScan = AssemblyScan.FromAssemblies(assembly, additionalAssemblies);
 
-            new ImplementationScanVisitor
-            {
-                OnServiceAndImplementationsFound = (service, implementations) =>
-                {
-                    if (this.m_RegistrationsByType.TryGetValue(service, out var _Registration))
-                        this.AddImplementations(_Registration, implementations);
-                    else if (this.m_ImplementationsByType.TryGetValue(service, out var _Implementations))
-                        this.m_ImplementationsByType[service] = _Implementations.Union(implementations);
-                    else
-                        this.m_ImplementationsByType.Add(service, implementations);
-                }
-            }.VisitAssemblyScan(_AssemblyScan);
+            new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddServiceAndImplementations }.VisitAssemblyScan(_AssemblyScan);
 
             _ = this.m_AssemblyScan.AddAssemblyScan(_AssemblyScan);
 
@@ -64,6 +54,45 @@ namespace Slender.ServiceRegistrations
         {
             foreach (var _Implementation in implementations)
                 _ = registration.AddImplementationType(_Implementation);
+        }
+
+        private void AddServiceAndImplementations(Type service, IEnumerable<Type> implementations)
+        {
+            if (this.m_RegistrationsByType.TryGetValue(service, out var _Registration))
+                this.AddImplementations(_Registration, implementations);
+            else if (this.m_ImplementationsByType.TryGetValue(service, out var _Implementations))
+                this.m_ImplementationsByType[service] = _Implementations.Union(implementations);
+            else
+                this.m_ImplementationsByType.Add(service, implementations);
+        }
+
+        public RegistrationCollection AddRegistrationCollection(RegistrationCollection registrations)
+        {
+            var _Registrations = registrations.ToArray();
+
+            var _ExistingRegistration = _Registrations.Where(r => this.m_RegistrationsByType.ContainsKey(r.ServiceType)).ToArray();
+            if (_ExistingRegistration.Any())
+            {
+                var _StringBuilder = new StringBuilder(64);
+                _ = _StringBuilder.AppendLine("Could not add Registration Collection, as the following services are already registered:");
+
+                foreach (var _Registration in _ExistingRegistration)
+                    _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
+
+                _ = _StringBuilder.AppendLine().AppendLine("This may be caused by scanning for registrations, or the order of your registrations.");
+
+                throw new Exception(_StringBuilder.ToString());
+            }
+
+            foreach (var _Registration in _Registrations)
+                this.m_RegistrationsByType.Add(_Registration.ServiceType, _Registration);
+
+            foreach (var _ImplementationsByType in registrations.m_ImplementationsByType)
+                this.AddServiceAndImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
+
+            _ = this.m_AssemblyScan.AddAssemblyScan(registrations.m_AssemblyScan);
+
+            return this;
         }
 
         public RegistrationCollection AddScopedService<TService>(Action<Registration> configurationAction = null)
@@ -119,11 +148,11 @@ namespace Slender.ServiceRegistrations
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<Registration>)this).GetEnumerator();
 
-        public RegistrationCollection ScanForUnregisteredServices(Action<Type> serviceRegistrationAction)
+        public RegistrationCollection ScanForUnregisteredServices(Action<RegistrationCollection, Type> serviceRegistrationAction)
         {
             new ServiceScanVisitor
             {
-                OnServiceFound = t => { if (!this.m_RegistrationsByType.ContainsKey(t)) serviceRegistrationAction(t); }
+                OnServiceFound = t => { if (!this.m_RegistrationsByType.ContainsKey(t)) serviceRegistrationAction(this, t); }
             }.VisitAssemblyScan(this.m_AssemblyScan);
 
             this.m_AssemblyScan = AssemblyScan.Empty();
