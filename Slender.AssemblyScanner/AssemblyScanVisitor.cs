@@ -27,6 +27,9 @@ namespace Slender.AssemblyScanner
             return _List;
         }
 
+        protected virtual IEnumerable<Type> GetTypesToVisit(AssemblyScan scan)
+            => scan.Types;
+
         protected virtual void VisitAbstract(Type abstractType) { }
 
         protected virtual void VisitAbstractAndImplementations(Type abstractType, IEnumerable<Type> implementationTypes) { }
@@ -38,7 +41,7 @@ namespace Slender.AssemblyScanner
             var _AbstractImplementations = new Dictionary<Type, List<Type>>();
             var _InterfaceImplementations = new Dictionary<Type, List<Type>>();
 
-            foreach (var _Type in scan.Types)
+            foreach (var _Type in this.GetTypesToVisit(scan))
             {
                 this.VisitType(_Type);
 
