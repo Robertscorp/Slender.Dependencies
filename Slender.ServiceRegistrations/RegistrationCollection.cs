@@ -18,7 +18,7 @@ namespace Slender.ServiceRegistrations
         private readonly Dictionary<Type, IEnumerable<Type>> m_ImplementationsByType = new Dictionary<Type, IEnumerable<Type>>();
         private readonly Dictionary<Type, Registration> m_RegistrationsByType = new Dictionary<Type, Registration>();
 
-        private AssemblyScan m_AssemblyScan = AssemblyScan.Empty();
+        private IAssemblyScan m_AssemblyScan = AssemblyScan.Empty();
 
         #endregion Fields
 
@@ -30,25 +30,23 @@ namespace Slender.ServiceRegistrations
 
         #region - - - - - - Methods - - - - - -
 
-        public RegistrationCollection AddAssemblies(Assembly assembly, params Assembly[] additionalAssemblies)
-        {
-            var _AssemblyScan = AssemblyScan.FromAssemblies(assembly, additionalAssemblies);
-
-            new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddServiceAndImplementations }.VisitAssemblyScan(_AssemblyScan);
-
-            _ = this.m_AssemblyScan.AddAssemblyScan(_AssemblyScan);
-
-            return this;
-        }
-
         public RegistrationCollection AddAssemblies(IEnumerable<Assembly> assemblies)
-        {
-            _ = this.m_AssemblyScan.AddAssemblies(assemblies);
-            return this;
-        }
+            => this.AddAssemblyScan(AssemblyScan.FromAssemblies(assemblies));
+
+        public RegistrationCollection AddAssemblies(Assembly assembly, params Assembly[] additionalAssemblies)
+            => this.AddAssemblyScan(AssemblyScan.FromAssemblies(assembly, additionalAssemblies));
 
         public RegistrationCollection AddAssembly(Assembly assembly)
             => this.AddAssemblies(assembly);
+
+        public RegistrationCollection AddAssemblyScan(IAssemblyScan assemblyScan)
+        {
+            new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddServiceAndImplementations }.VisitAssemblyScan(assemblyScan);
+
+            this.m_AssemblyScan = AssemblyScan.Empty().AddAssemblyScan(this.m_AssemblyScan).AddAssemblyScan(assemblyScan);
+
+            return this;
+        }
 
         private void AddImplementations(Registration registration, IEnumerable<Type> implementations)
         {
@@ -64,6 +62,17 @@ namespace Slender.ServiceRegistrations
                 this.m_ImplementationsByType[service] = _Implementations.Union(implementations);
             else
                 this.m_ImplementationsByType.Add(service, implementations);
+        }
+
+        private void AddRegistration(Registration registration)
+        {
+            this.m_RegistrationsByType.Add(registration.ServiceType, registration);
+
+            if (this.m_ImplementationsByType.TryGetValue(registration.ServiceType, out var _Implementations))
+            {
+                this.AddImplementations(registration, _Implementations);
+                _ = this.m_ImplementationsByType.Remove(registration.ServiceType);
+            }
         }
 
         public RegistrationCollection AddRegistrationCollection(RegistrationCollection registrations)
@@ -85,14 +94,12 @@ namespace Slender.ServiceRegistrations
             }
 
             foreach (var _Registration in _Registrations)
-                this.m_RegistrationsByType.Add(_Registration.ServiceType, _Registration);
+                this.AddRegistration(_Registration);
 
             foreach (var _ImplementationsByType in registrations.m_ImplementationsByType)
                 this.AddServiceAndImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
 
-            _ = this.m_AssemblyScan.AddAssemblyScan(registrations.m_AssemblyScan);
-
-            return this;
+            return this.AddAssemblyScan(registrations.m_AssemblyScan);
         }
 
         public RegistrationCollection AddScopedService<TService>(Action<Registration> configurationAction = null)
@@ -108,15 +115,9 @@ namespace Slender.ServiceRegistrations
 
             var _Registration = new Registration(type, lifetime);
 
-            this.m_RegistrationsByType.Add(type, _Registration);
-
             configurationAction?.Invoke(_Registration);
 
-            if (this.m_ImplementationsByType.TryGetValue(type, out var _Implementations))
-            {
-                this.AddImplementations(_Registration, _Implementations);
-                _ = this.m_ImplementationsByType.Remove(_Registration.ServiceType);
-            }
+            this.AddRegistration(_Registration);
 
             return this;
         }
