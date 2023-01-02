@@ -18,7 +18,7 @@ namespace Slender.ServiceRegistrations.Visitors
         protected override void VisitAbstract(Type abstractType)
             => this.OnServiceFound?.Invoke(abstractType);
 
-        public override void VisitAssemblyScan(AssemblyScan scan)
+        public override void VisitAssemblyScan(IAssemblyScan scan)
         {
             foreach (var _Type in scan.Types)
                 this.VisitType(_Type);
