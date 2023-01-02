@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Slender.AssemblyScanner
 {
 
-    public class AssemblyScan
+    public class AssemblyScan : IAssemblyScan
     {
 
         #region - - - - - - Constructors - - - - - -
@@ -17,8 +17,6 @@ namespace Slender.AssemblyScanner
 
         #region - - - - - - Properties - - - - - -
 
-        public Assembly[] Assemblies { get; private set; } = Array.Empty<Assembly>();
-
         public Type[] Types { get; private set; } = Array.Empty<Type>();
 
         #endregion Properties
@@ -26,13 +24,7 @@ namespace Slender.AssemblyScanner
         #region - - - - - - Methods - - - - - -
 
         public AssemblyScan AddAssemblies(IEnumerable<Assembly> assemblies)
-        {
-            assemblies = (assemblies ?? Enumerable.Empty<Assembly>()).Where(a => a != null).Except(this.Assemblies);
-
-            this.Types = this.Types.Union(assemblies.SelectMany(a => a.GetTypes())).ToArray();
-
-            return this;
-        }
+            => this.AddAssemblyScan(new AssemblyScan { Types = assemblies.SelectMany(a => a.GetTypes()).ToArray() });
 
         public AssemblyScan AddAssemblies(Assembly assembly, params Assembly[] additionalAssemblies)
             => this.AddAssemblies(new[] { assembly }.Union(additionalAssemblies));
@@ -40,9 +32,8 @@ namespace Slender.AssemblyScanner
         public AssemblyScan AddAssembly(Assembly assembly)
             => this.AddAssemblies(assembly);
 
-        public AssemblyScan AddAssemblyScan(AssemblyScan assemblyScan)
+        public AssemblyScan AddAssemblyScan(IAssemblyScan assemblyScan)
         {
-            this.Assemblies = this.Assemblies.Union(assemblyScan.Assemblies).ToArray();
             this.Types = this.Types.Union(assemblyScan.Types).ToArray();
 
             return this;

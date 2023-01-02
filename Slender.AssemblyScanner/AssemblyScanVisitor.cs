@@ -27,14 +27,14 @@ namespace Slender.AssemblyScanner
             return _List;
         }
 
-        protected virtual IEnumerable<Type> GetTypesToVisit(AssemblyScan scan)
+        protected virtual IEnumerable<Type> GetTypesToVisit(IAssemblyScan scan)
             => scan.Types;
 
         protected virtual void VisitAbstract(Type abstractType) { }
 
         protected virtual void VisitAbstractAndImplementations(Type abstractType, IEnumerable<Type> implementationTypes) { }
 
-        public virtual void VisitAssemblyScan(AssemblyScan scan)
+        public virtual void VisitAssemblyScan(IAssemblyScan scan)
         {
             if (scan is null) throw new ArgumentNullException(nameof(scan));
 
