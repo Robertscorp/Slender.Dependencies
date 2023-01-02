@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Slender.ServiceRegistrations
 {
@@ -23,6 +24,12 @@ namespace Slender.ServiceRegistrations
         #endregion Constructors
 
         #region - - - - - - Properties - - - - - -
+
+        public Func<object> ImplementationFactory => this.m_Context.ImplementationFactory;
+
+        public object ImplementationInstance => this.m_Context.ImplementationInstance;
+
+        public IEnumerable<Type> ImplementationTypes => this.m_Context.ImplementationTypes.AsReadOnly();
 
         public Type ServiceType { get; }
 
