@@ -161,6 +161,23 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
+        public RegistrationCollection Validate()
+        {
+            var _InvalidRegistrations = this.Where(r => !r.ImplementationTypes.Any() && r.ImplementationFactory == null && r.ImplementationInstance == null).ToArray();
+            if (_InvalidRegistrations.Any())
+            {
+                var _StringBuilder = new StringBuilder(64);
+                _ = _StringBuilder.AppendLine("The following services don't have any implementations:");
+
+                foreach (var _Registration in _InvalidRegistrations)
+                    _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
+
+                throw new Exception(_StringBuilder.ToString());
+            }
+
+            return this;
+        }
+
         #endregion Methods
 
     }
