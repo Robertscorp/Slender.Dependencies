@@ -15,7 +15,7 @@ namespace Slender.ServiceRegistrations
 
         public object ImplementationInstance { get; set; }
 
-        public List<Type> ImplementationTypes { get; } = new List<Type>();
+        public List<Type> ImplementationTypes { get; set; } = new List<Type>();
 
         public RegistrationLifetime Lifetime { get; set; }
 
