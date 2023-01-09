@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Slender.ServiceRegistrations", "src\Slender.ServiceRegistrations\Slender.ServiceRegistrations.csproj", "{E6A17F75-9572-42CF-A629-92EEF63FCCD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Slender.ServiceRegistrations.Tests", "test\Slender.ServiceRegistrations.Tests\Slender.ServiceRegistrations.Tests.csproj", "{9E851DD9-F7EB-4286-809C-7C757DD6059B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E6A17F75-9572-42CF-A629-92EEF63FCCD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6A17F75-9572-42CF-A629-92EEF63FCCD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6A17F75-9572-42CF-A629-92EEF63FCCD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E851DD9-F7EB-4286-809C-7C757DD6059B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E851DD9-F7EB-4286-809C-7C757DD6059B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E851DD9-F7EB-4286-809C-7C757DD6059B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E851DD9-F7EB-4286-809C-7C757DD6059B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
