@@ -30,15 +30,36 @@ namespace Slender.ServiceRegistrations
 
         #region - - - - - - Methods - - - - - -
 
+        /// <summary>
+        /// Adds the assemblies and scans them for implementations of registered services.
+        /// </summary>
+        /// <param name="assemblies">The assemblies to add.</param>
+        /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblies(IEnumerable<Assembly> assemblies)
             => this.AddAssemblyScan(AssemblyScan.FromAssemblies(assemblies));
 
+        /// <summary>
+        /// Adds the assemblies and scans them for implementations of registered services.
+        /// </summary>
+        /// <param name="assembly">An assembly to add.</param>
+        /// <param name="additionalAssemblies">Additional assemblies to add.</param>
+        /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblies(Assembly assembly, params Assembly[] additionalAssemblies)
             => this.AddAssemblyScan(AssemblyScan.FromAssemblies(assembly, additionalAssemblies));
 
+        /// <summary>
+        /// Adds the assembly and scans it for implementations of registered services.
+        /// </summary>
+        /// <param name="assembly">The assembly to add.</param>
+        /// <returns>Itself.</returns>
         public RegistrationCollection AddAssembly(Assembly assembly)
             => this.AddAssemblies(assembly);
 
+        /// <summary>
+        /// Adds the assembly scan and scans it for implementations of registered services.
+        /// </summary>
+        /// <param name="assemblyScan">The assembly scan to add.</param>
+        /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblyScan(IAssemblyScan assemblyScan)
         {
             new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddServiceAndImplementations }.VisitAssemblyScan(assemblyScan);
@@ -75,6 +96,12 @@ namespace Slender.ServiceRegistrations
             }
         }
 
+        /// <summary>
+        /// Adds all registered services from the provided registration collection to this registration collection.
+        /// </summary>
+        /// <param name="registrations">The registration collection to add.</param>
+        /// <returns>Itself.</returns>
+        /// <exception cref="Exception">Thrown when a service in the provided registration collection already exists in this registration collection.</exception>
         public RegistrationCollection AddRegistrationCollection(RegistrationCollection registrations)
         {
             var _Registrations = registrations.ToArray();
@@ -102,9 +129,23 @@ namespace Slender.ServiceRegistrations
             return this.AddAssemblyScan(registrations.m_AssemblyScan);
         }
 
+        /// <summary>
+        /// Registers TService as a scoped service.
+        /// </summary>
+        /// <typeparam name="TService">The type of service.</typeparam>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
         public RegistrationCollection AddScopedService<TService>(Action<Registration> configurationAction = null)
             => this.AddScopedService(typeof(TService), configurationAction);
 
+        /// <summary>
+        /// Registers the specified type as a scoped service.
+        /// </summary>
+        /// <param name="type">The type of service.</param>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
         public RegistrationCollection AddScopedService(Type type, Action<Registration> configurationAction = null)
             => this.AddService(type, RegistrationLifetime.Scoped(), configurationAction);
 
@@ -122,18 +163,52 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
+        /// <summary>
+        /// Registers TService as a singleton service.
+        /// </summary>
+        /// <typeparam name="TService">The type of service.</typeparam>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
         public RegistrationCollection AddSingletonService<TService>(Action<Registration> configurationAction = null)
             => this.AddSingletonService(typeof(TService), configurationAction);
 
+        /// <summary>
+        /// Registers the specified type as a singleton service.
+        /// </summary>
+        /// <param name="type">The type of service.</param>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
         public RegistrationCollection AddSingletonService(Type type, Action<Registration> configurationAction = null)
             => this.AddService(type, RegistrationLifetime.Singleton(), configurationAction);
 
+        /// <summary>
+        /// Registers TService as a transient service.
+        /// </summary>
+        /// <typeparam name="TService">The type of service.</typeparam>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
         public RegistrationCollection AddTransientService<TService>(Action<Registration> configurationAction = null)
             => this.AddTransientService(typeof(TService), configurationAction);
 
+        /// <summary>
+        /// Registers the specified type as a transient service.
+        /// </summary>
+        /// <param name="type">The type of service.</param>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
         public RegistrationCollection AddTransientService(Type type, Action<Registration> configurationAction = null)
             => this.AddService(type, RegistrationLifetime.Transient(), configurationAction);
 
+        /// <summary>
+        /// Configures a registered service.
+        /// </summary>
+        /// <param name="type">The type of service.</param>
+        /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <returns>Itself.</returns>
         public RegistrationCollection ConfigureService(Type type, Action<Registration> configurationAction)
         {
             _ = this.m_RegistrationsByType.TryGetValue(type, out var _Registration);
@@ -149,6 +224,11 @@ namespace Slender.ServiceRegistrations
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<Registration>)this).GetEnumerator();
 
+        /// <summary>
+        /// Scans already added assemblies for services that haven't been registered, and invokes the provided action with them.
+        /// </summary>
+        /// <param name="serviceRegistrationAction">The action to register services.</param>
+        /// <returns>Itself.</returns>
         public RegistrationCollection ScanForUnregisteredServices(Action<RegistrationCollection, Type> serviceRegistrationAction)
         {
             new ServiceScanVisitor
@@ -161,6 +241,11 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
+        /// <summary>
+        /// Verifies that all registered services have an associated implementation.
+        /// </summary>
+        /// <returns>Itself.</returns>
+        /// <exception cref="Exception">Thrown if any services do not have any associated implementation.</exception>
         public RegistrationCollection Validate()
         {
             var _InvalidRegistrations = this.Where(r => !r.ImplementationTypes.Any() && r.ImplementationFactory == null && r.ImplementationInstance == null).ToArray();
