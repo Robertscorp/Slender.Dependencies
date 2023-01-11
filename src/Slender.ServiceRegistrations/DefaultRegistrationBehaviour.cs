@@ -4,6 +4,9 @@ using System.Linq;
 namespace Slender.ServiceRegistrations
 {
 
+    /// <summary>
+    /// The default configuration behaviour.
+    /// </summary>
     public class DefaultRegistrationBehaviour : IRegistrationBehaviour
     {
 
@@ -26,6 +29,12 @@ namespace Slender.ServiceRegistrations
 
         #region - - - - - - Methods - - - - - -
 
+        /// <summary>
+        /// Gets a new instance of the default registration behaviour.
+        /// </summary>
+        /// <param name="allowBehaviourToChange">Determines if a service registration can have its behaviour changed. Default = true.</param>
+        /// <param name="allowMultipleImplementationTypes">Determines if a service registration can have multiple implementation types registered against it. Default = false.</param>
+        /// <returns>An instance of the default registration behaviour.</returns>
         public static DefaultRegistrationBehaviour Instance(bool allowBehaviourToChange = true, bool allowMultipleImplementationTypes = false)
             => new DefaultRegistrationBehaviour(allowBehaviourToChange, allowMultipleImplementationTypes);
 

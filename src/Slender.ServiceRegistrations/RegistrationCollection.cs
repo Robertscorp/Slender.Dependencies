@@ -10,6 +10,9 @@ using System.Text;
 namespace Slender.ServiceRegistrations
 {
 
+    /// <summary>
+    /// A collection of service registrations that can be used to configure a dependency injection container.
+    /// </summary>
     public class RegistrationCollection : IEnumerable<Registration>
     {
 
@@ -24,6 +27,9 @@ namespace Slender.ServiceRegistrations
 
         #region - - - - - - Constructors - - - - - -
 
+        /// <summary>
+        /// Creates a new instance of a service registration collection.
+        /// </summary>
         public RegistrationCollection() { }
 
         #endregion Constructors
