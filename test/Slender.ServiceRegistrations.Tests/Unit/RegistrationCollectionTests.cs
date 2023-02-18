@@ -33,7 +33,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_NotAllServicesAndPackagesResolved_ThrowsException()
         {
             // Arrange
-            //_ = this.m_RegistrationCollection.AddScopedService<IService>();
+            _ = this.m_RegistrationCollection.AddScopedService<IService>();
             _ = this.m_RegistrationCollection.AddRequiredPackage("Package");
 
             // Act
