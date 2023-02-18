@@ -20,6 +20,7 @@ namespace Slender.ServiceRegistrations
 
         private readonly Dictionary<Type, IEnumerable<Type>> m_ImplementationsByType = new Dictionary<Type, IEnumerable<Type>>();
         private readonly Dictionary<Type, Registration> m_RegistrationsByType = new Dictionary<Type, Registration>();
+        private readonly List<string> m_RequiredPackages = new List<string>();
 
         private IAssemblyScan m_AssemblyScan = AssemblyScan.Empty();
 
@@ -132,6 +133,9 @@ namespace Slender.ServiceRegistrations
             foreach (var _ImplementationsByType in registrations.m_ImplementationsByType)
                 this.AddServiceAndImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
 
+            foreach (var _RequiredPackage in registrations.m_RequiredPackages)
+                _ = this.AddRequiredPackage(_RequiredPackage);
+
             return this.AddAssemblyScan(registrations.m_AssemblyScan);
         }
 
@@ -210,6 +214,26 @@ namespace Slender.ServiceRegistrations
             => this.AddService(type, RegistrationLifetime.Transient(), configurationAction);
 
         /// <summary>
+        /// Registers an external package as being required for implementations in the registration collection.
+        /// </summary>
+        /// <param name="externalPackageName">The name of the external package.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>
+        /// This method exists so that consumers of the registration collection can be informed that an external package
+        /// has been used by implementations in the registration collection.
+        /// 
+        /// This should only be used if the external package doesn't provide a RegistrationCollection, but instead has
+        /// functionality to register itself directly into dependency injection containers.
+        /// 
+        /// If a required package hasn't been resolved, it will cause the validation of the registration collection to fail.
+        /// </remarks>
+        public RegistrationCollection AddRequiredPackage(string externalPackageName)
+        {
+            this.m_RequiredPackages.Add(externalPackageName);
+            return this;
+        }
+
+        /// <summary>
         /// Configures a registered service.
         /// </summary>
         /// <param name="type">The type of service.</param>
@@ -229,6 +253,17 @@ namespace Slender.ServiceRegistrations
 
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<Registration>)this).GetEnumerator();
+
+        /// <summary>
+        /// Informs the RegistrationCollection that the external package no longer needs to be tracked.
+        /// </summary>
+        /// <param name="externalPackageName">The name of the external package.</param>
+        /// <returns>Itself.</returns>
+        public RegistrationCollection ResolveRequiredPackage(string externalPackageName)
+        {
+            _ = this.m_RequiredPackages.Remove(externalPackageName);
+            return this;
+        }
 
         /// <summary>
         /// Scans already added assemblies for services that haven't been registered, and invokes the provided action with them.
@@ -254,19 +289,29 @@ namespace Slender.ServiceRegistrations
         /// <exception cref="Exception">Thrown if any services do not have any associated implementation.</exception>
         public RegistrationCollection Validate()
         {
+            var _StringBuilder = new StringBuilder(64);
+
             var _InvalidRegistrations = this.Where(r => !r.ImplementationTypes.Any() && r.ImplementationFactory == null && r.ImplementationInstance == null).ToArray();
             if (_InvalidRegistrations.Any())
             {
-                var _StringBuilder = new StringBuilder(64);
                 _ = _StringBuilder.AppendLine("The following services don't have any implementations:");
 
                 foreach (var _Registration in _InvalidRegistrations)
                     _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
-
-                throw new Exception(_StringBuilder.ToString());
             }
 
-            return this;
+            if (this.m_RequiredPackages.Any())
+            {
+                if (_StringBuilder.Length > 0)
+                    _ = _StringBuilder.AppendLine();
+
+                _ = _StringBuilder.AppendLine("The following packages are required and have not been resolved:");
+
+                foreach (var _RequiredPackage in this.m_RequiredPackages)
+                    _ = _StringBuilder.Append(" - ").AppendLine(_RequiredPackage);
+            }
+
+            return _StringBuilder.Length == 0 ? this : throw new Exception(_StringBuilder.ToString());
         }
 
         #endregion Methods
