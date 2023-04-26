@@ -29,7 +29,7 @@ namespace Slender.ServiceRegistrations
         /// Sets the implementation factory of the registration context.
         /// </summary>
         /// <param name="context">The registration context to update.</param>
-        /// <param name="implementationFactory">A factory that produces an instance that can be assigned to a reference of the registered service.</param>
+        /// <param name="implementationFactory">A factory which produces an instance that can be assigned to a reference of the registered service.</param>
         void UpdateImplementationFactory(RegistrationContext context, Func<object> implementationFactory);
 
         /// <summary>

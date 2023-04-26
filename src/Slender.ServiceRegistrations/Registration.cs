@@ -23,7 +23,7 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         /// <param name="serviceType">The type of service being registered.</param>
         /// <param name="lifetime">The lifetime of the service.</param>
-        /// <exception cref="ArgumentNullException">Thrown when serviceType or lifetime is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceType"/> or <paramref name="lifetime"/> is null.</exception>
         public Registration(Type serviceType, RegistrationLifetime lifetime)
         {
             this.m_Context.Lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
@@ -35,7 +35,7 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Properties - - - - - -
 
         /// <summary>
-        /// A factory that produces an instance that can be assigned to a reference of the registered service.
+        /// A factory which produces an instance that can be assigned to a reference of the registered service.
         /// </summary>
         public Func<object> ImplementationFactory => this.m_Context.ImplementationFactory;
 
@@ -59,7 +59,7 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Methods - - - - - -
 
         /// <summary>
-        /// Adds TImplementation as an implementation type to the the service registration.
+        /// Adds <typeparamref name="TImplementation"/> as an implementation type to the the service registration.
         /// </summary>
         /// <typeparam name="TImplementation">The implementation type that implements or inherits the registered service.</typeparam>
         /// <returns>Itself.</returns>
@@ -71,7 +71,7 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         /// <param name="implementationType">The type that implements or inherits the registered service.</param>
         /// <returns>Itself.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when implementationType is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="implementationType"/> is null.</exception>
         public Registration AddImplementationType(Type implementationType)
         {
             if (implementationType is null) throw new ArgumentNullException(nameof(implementationType));
@@ -84,9 +84,9 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// Sets the implementation factory of the service registration.
         /// </summary>
-        /// <param name="implementationFactory">A factory that produces an instance that can be assigned to a reference of the registered service.</param>
+        /// <param name="implementationFactory">A factory which produces an instance that can be assigned to a reference of the registered service.</param>
         /// <returns>Itself.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when implementationFactory is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="implementationFactory"/> is null.</exception>
         public Registration WithImplementationFactory(Func<object> implementationFactory)
         {
             if (implementationFactory is null) throw new ArgumentNullException(nameof(implementationFactory));
@@ -101,7 +101,7 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         /// <param name="implementationInstance">An instance that can be assigned to a reference of the registered service.</param>
         /// <returns>Itself.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when implementationInstance is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="implementationInstance"/> is null.</exception>
         /// <exception cref="Exception">Thrown when the service registration lifetime doesn't allow implementation instances.</exception>
         public Registration WithImplementationInstance(object implementationInstance)
         {
@@ -121,7 +121,7 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         /// <param name="lifetime">The new service lifetime for the service registration.</param>
         /// <returns>Itself.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when lifetime is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="lifetime"/> is null.</exception>
         public Registration WithLifetime(RegistrationLifetime lifetime)
         {
             if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
@@ -132,11 +132,11 @@ namespace Slender.ServiceRegistrations
         }
 
         /// <summary>
-        /// Sets the registration behaviour of the registration context.
+        /// Sets the registration behaviour of the service registration.
         /// </summary>
-        /// <param name="behaviour">The new behaviour for the registration context.</param>
+        /// <param name="behaviour">The new behaviour for the service registration.</param>
         /// <returns>Itself.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when behaviour is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="behaviour"/> is null.</exception>
         public Registration WithRegistrationBehaviour(IRegistrationBehaviour behaviour)
         {
             if (behaviour is null) throw new ArgumentNullException(nameof(behaviour));

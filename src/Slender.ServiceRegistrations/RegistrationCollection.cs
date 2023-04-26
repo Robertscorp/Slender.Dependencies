@@ -63,7 +63,7 @@ namespace Slender.ServiceRegistrations
             => this.AddAssemblies(assembly);
 
         /// <summary>
-        /// Adds the assembly scan and scans it for implementations of registered services.
+        /// Adds the assembly scan and visits it for implementations of registered services.
         /// </summary>
         /// <param name="assemblyScan">The assembly scan to add.</param>
         /// <returns>Itself.</returns>
@@ -140,7 +140,7 @@ namespace Slender.ServiceRegistrations
         }
 
         /// <summary>
-        /// Registers TService as a scoped service.
+        /// Registers <typeparamref name="TService"/> as a scoped service.
         /// </summary>
         /// <typeparam name="TService">The type of service.</typeparam>
         /// <param name="configurationAction">An action to configure the registered service.</param>
@@ -150,7 +150,7 @@ namespace Slender.ServiceRegistrations
             => this.AddScopedService(typeof(TService), configurationAction);
 
         /// <summary>
-        /// Registers the specified type as a scoped service.
+        /// Registers the specified <see cref="Type"/> as a scoped service.
         /// </summary>
         /// <param name="type">The type of service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
@@ -174,7 +174,7 @@ namespace Slender.ServiceRegistrations
         }
 
         /// <summary>
-        /// Registers TService as a singleton service.
+        /// Registers <typeparamref name="TService"/> as a singleton service.
         /// </summary>
         /// <typeparam name="TService">The type of service.</typeparam>
         /// <param name="configurationAction">An action to configure the registered service.</param>
@@ -184,7 +184,7 @@ namespace Slender.ServiceRegistrations
             => this.AddSingletonService(typeof(TService), configurationAction);
 
         /// <summary>
-        /// Registers the specified type as a singleton service.
+        /// Registers the specified <see cref="Type"/> as a singleton service.
         /// </summary>
         /// <param name="type">The type of service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
@@ -194,7 +194,7 @@ namespace Slender.ServiceRegistrations
             => this.AddService(type, RegistrationLifetime.Singleton(), configurationAction);
 
         /// <summary>
-        /// Registers TService as a transient service.
+        /// Registers <typeparamref name="TService"/> as a transient service.
         /// </summary>
         /// <typeparam name="TService">The type of service.</typeparam>
         /// <param name="configurationAction">An action to configure the registered service.</param>
@@ -204,7 +204,7 @@ namespace Slender.ServiceRegistrations
             => this.AddTransientService(typeof(TService), configurationAction);
 
         /// <summary>
-        /// Registers the specified type as a transient service.
+        /// Registers the specified <see cref="Type"/> as a transient service.
         /// </summary>
         /// <param name="type">The type of service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>

@@ -18,7 +18,7 @@ namespace Slender.ServiceRegistrations
         public IRegistrationBehaviour Behaviour { get; set; } = DefaultRegistrationBehaviour.Instance();
 
         /// <summary>
-        /// A factory that produces an instance that can be assigned to a reference of the registered service.
+        /// A factory which produces an instance that can be assigned to a reference of the registered service.
         /// </summary>
         public Func<object> ImplementationFactory { get; set; }
 
