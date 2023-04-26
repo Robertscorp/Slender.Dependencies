@@ -2,7 +2,28 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Robertscorp</Authors>
+    <Description>A .NET library to register services and their implementations without being tied to a specific dependency injection container.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/Robertscorp/Slender.ServiceRegistrations</PackageProjectUrl>
+    <Copyright>Copyright Slender</Copyright>
+    <RepositoryUrl>https://github.com/Robertscorp/Slender.ServiceRegistrations</RepositoryUrl>
+    <PackageTags>dependency; injection; service; scanner;</PackageTags>
+    <Company>Slender</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Slender.AssemblyScanner" Version="1.0.0" />
