@@ -12,7 +12,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #region - - - - - - Fields - - - - - -
 
-        private static readonly Func<object> s_ImplementationFactory = () => new object();
+        private static readonly Func<ServiceFactory, object> s_ImplementationFactory = serviceFactory => new object();
         private static readonly object s_ImplementationInstance = new();
 
         private readonly IRegistrationBehaviour m_RegistrationBehaviour = new Mock<IRegistrationBehaviour>().Object;

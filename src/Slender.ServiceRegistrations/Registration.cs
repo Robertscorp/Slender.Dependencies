@@ -37,7 +37,7 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// A factory which produces an instance that can be assigned to a reference of the registered service.
         /// </summary>
-        public Func<object> ImplementationFactory => this.m_Context.ImplementationFactory;
+        public Func<ServiceFactory, object> ImplementationFactory => this.m_Context.ImplementationFactory;
 
         /// <summary>
         /// An instance that can be assigned to a reference of the registered service.
@@ -87,7 +87,7 @@ namespace Slender.ServiceRegistrations
         /// <param name="implementationFactory">A factory which produces an instance that can be assigned to a reference of the registered service.</param>
         /// <returns>Itself.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="implementationFactory"/> is null.</exception>
-        public Registration WithImplementationFactory(Func<object> implementationFactory)
+        public Registration WithImplementationFactory(Func<ServiceFactory, object> implementationFactory)
         {
             if (implementationFactory is null) throw new ArgumentNullException(nameof(implementationFactory));
 
