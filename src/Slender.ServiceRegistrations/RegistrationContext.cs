@@ -20,7 +20,7 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// A factory which produces an instance that can be assigned to a reference of the registered service.
         /// </summary>
-        public Func<object> ImplementationFactory { get; set; }
+        public Func<ServiceFactory, object> ImplementationFactory { get; set; }
 
         /// <summary>
         /// An instance that can be assigned to a reference of the registered service.

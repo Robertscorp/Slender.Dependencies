@@ -53,7 +53,7 @@ namespace Slender.ServiceRegistrations
             if (this.m_AllowBehaviourToChange) context.Behaviour = behaviour;
         }
 
-        void IRegistrationBehaviour.UpdateImplementationFactory(RegistrationContext context, Func<object> implementationFactory)
+        void IRegistrationBehaviour.UpdateImplementationFactory(RegistrationContext context, Func<ServiceFactory, object> implementationFactory)
         {
             if (this.CanRegisterImplementation(context, false)) context.ImplementationFactory = implementationFactory;
         }
