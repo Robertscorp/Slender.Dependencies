@@ -35,6 +35,11 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Properties - - - - - -
 
         /// <summary>
+        /// Determines if scanned implementation types are allowed to be added to the registered service.
+        /// </summary>
+        public bool AllowScannedImplementationTypes => this.m_Context.AllowScannedImplementationTypes;
+
+        /// <summary>
         /// A factory which produces an instance that can be assigned to a reference of the registered service.
         /// </summary>
         public Func<ServiceFactory, object> ImplementationFactory => this.m_Context.ImplementationFactory;
@@ -48,6 +53,8 @@ namespace Slender.ServiceRegistrations
         /// A list of types that implement or inherit the registered service.
         /// </summary>
         public IEnumerable<Type> ImplementationTypes => this.m_Context.ImplementationTypes.AsReadOnly();
+
+        internal Action OnScanForImplementations { get; set; }
 
         /// <summary>
         /// The type of the registered service.
@@ -78,6 +85,19 @@ namespace Slender.ServiceRegistrations
 
             this.m_Context.Behaviour.AddImplementationType(this.m_Context, implementationType);
 
+            return this;
+        }
+
+        /// <summary>
+        /// Allows scanned implementations of this service to be added to the service registration.
+        /// </summary>
+        /// <remarks>
+        /// For more information on scanned types, see <see cref="RegistrationCollection.AddAssemblyScan(AssemblyScanner.IAssemblyScan)"/>.
+        /// </remarks>
+        public Registration ScanForImplementations()
+        {
+            this.m_Context.Behaviour.AllowScannedImplementationTypes(this.m_Context);
+            this.OnScanForImplementations?.Invoke();
             return this;
         }
 

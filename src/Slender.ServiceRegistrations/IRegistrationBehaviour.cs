@@ -19,6 +19,12 @@ namespace Slender.ServiceRegistrations
         void AddImplementationType(RegistrationContext context, Type type);
 
         /// <summary>
+        /// Changes the registration context to allow scanned implementation types to be added.
+        /// </summary>
+        /// <param name="context">The registration context to update.</param>
+        void AllowScannedImplementationTypes(RegistrationContext context);
+
+        /// <summary>
         /// Changes the registration behaviour of the registration context.
         /// </summary>
         /// <param name="context">The registration context to update.</param>
