@@ -69,11 +69,20 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblyScan(IAssemblyScan assemblyScan)
         {
-            new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddServiceAndImplementations }.VisitAssemblyScan(assemblyScan);
+            new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddImplementations }.VisitAssemblyScan(assemblyScan);
 
             this.m_AssemblyScan = AssemblyScan.Empty().AddAssemblyScan(this.m_AssemblyScan).AddAssemblyScan(assemblyScan);
 
             return this;
+        }
+
+        private void AddImplementations(Registration registration)
+        {
+            if (this.m_ImplementationsByType.TryGetValue(registration.ServiceType, out var _Implementations) && registration.AllowScannedImplementationTypes)
+            {
+                this.AddImplementations(registration, _Implementations);
+                _ = this.m_ImplementationsByType.Remove(registration.ServiceType);
+            }
         }
 
         private void AddImplementations(Registration registration, IEnumerable<Type> implementations)
@@ -82,9 +91,9 @@ namespace Slender.ServiceRegistrations
                 _ = registration.AddImplementationType(_Implementation);
         }
 
-        private void AddServiceAndImplementations(Type service, IEnumerable<Type> implementations)
+        private void AddImplementations(Type service, IEnumerable<Type> implementations)
         {
-            if (this.m_RegistrationsByType.TryGetValue(service, out var _Registration))
+            if (this.m_RegistrationsByType.TryGetValue(service, out var _Registration) && _Registration.AllowScannedImplementationTypes)
                 this.AddImplementations(_Registration, implementations);
             else if (this.m_ImplementationsByType.TryGetValue(service, out var _Implementations))
                 this.m_ImplementationsByType[service] = _Implementations.Union(implementations);
@@ -94,13 +103,10 @@ namespace Slender.ServiceRegistrations
 
         private void AddRegistration(Registration registration)
         {
-            this.m_RegistrationsByType.Add(registration.ServiceType, registration);
+            registration.OnScanForImplementations = () => this.AddImplementations(registration);
 
-            if (this.m_ImplementationsByType.TryGetValue(registration.ServiceType, out var _Implementations))
-            {
-                this.AddImplementations(registration, _Implementations);
-                _ = this.m_ImplementationsByType.Remove(registration.ServiceType);
-            }
+            this.m_RegistrationsByType.Add(registration.ServiceType, registration);
+            this.AddImplementations(registration);
         }
 
         /// <summary>
@@ -131,7 +137,7 @@ namespace Slender.ServiceRegistrations
                 this.AddRegistration(_Registration);
 
             foreach (var _ImplementationsByType in registrations.m_ImplementationsByType)
-                this.AddServiceAndImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
+                this.AddImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
 
             foreach (var _RequiredPackage in registrations.m_RequiredPackages)
                 _ = this.AddRequiredPackage(_RequiredPackage);
@@ -291,12 +297,18 @@ namespace Slender.ServiceRegistrations
         {
             var _StringBuilder = new StringBuilder(64);
 
-            var _InvalidRegistrations = this.Where(r => !r.ImplementationTypes.Any() && r.ImplementationFactory == null && r.ImplementationInstance == null).ToArray();
-            if (_InvalidRegistrations.Any())
+            var _RegistrationsWithoutImplementations
+                = this.Where(r =>
+                    !r.ImplementationTypes.Any()
+                    && r.ImplementationFactory == null
+                    && r.ImplementationInstance == null
+                    && (r.AllowScannedImplementationTypes || r.ServiceType.IsAbstract)).ToList();
+
+            if (_RegistrationsWithoutImplementations.Any())
             {
                 _ = _StringBuilder.AppendLine("The following services don't have any implementations:");
 
-                foreach (var _Registration in _InvalidRegistrations)
+                foreach (var _Registration in _RegistrationsWithoutImplementations)
                     _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
             }
 

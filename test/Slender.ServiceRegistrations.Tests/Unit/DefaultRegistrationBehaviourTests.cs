@@ -77,6 +77,24 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #endregion AddImplementationType Tests
 
+        #region - - - - - - AllowScannedImplementationTypes Tests - - - - - -
+
+        [Fact]
+        public void AllowScannedImplementationTypes_AnyRequest_RegistrationContextAllowsScannedImplementationTypes()
+        {
+            // Arrange
+            var _Actual = new RegistrationContext();
+            var _Expected = new RegistrationContext() { AllowScannedImplementationTypes = true };
+
+            // Act
+            RegistrationBehaviour_Default.AllowScannedImplementationTypes(_Actual);
+
+            // Assert
+            _ = _Actual.Should().BeEquivalentTo(_Expected);
+        }
+
+        #endregion AllowScannedImplementationTypes Tests
+
         #region - - - - - - UpdateBehaviour Tests - - - - - -
 
         [Fact]

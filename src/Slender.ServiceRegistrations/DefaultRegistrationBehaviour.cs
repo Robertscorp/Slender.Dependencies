@@ -48,6 +48,9 @@ namespace Slender.ServiceRegistrations
             if (this.CanRegisterImplementation(context, true)) context.ImplementationTypes.Add(type);
         }
 
+        void IRegistrationBehaviour.AllowScannedImplementationTypes(RegistrationContext context)
+            => context.AllowScannedImplementationTypes = true;
+
         void IRegistrationBehaviour.UpdateBehaviour(RegistrationContext context, IRegistrationBehaviour behaviour)
         {
             if (this.m_AllowBehaviourToChange) context.Behaviour = behaviour;

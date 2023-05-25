@@ -13,6 +13,11 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Properties - - - - - -
 
         /// <summary>
+        /// Determines if scanned implementation types are allowed to be added to the registered service.
+        /// </summary>
+        public bool AllowScannedImplementationTypes { get; set; }
+
+        /// <summary>
         /// The configuration behaviour of the service registration.
         /// </summary>
         public IRegistrationBehaviour Behaviour { get; set; } = DefaultRegistrationBehaviour.Instance();
