@@ -179,26 +179,6 @@ namespace Slender.ServiceRegistrations
         }
 
         /// <summary>
-        /// Registers <typeparamref name="TService"/> as a singleton service.
-        /// </summary>
-        /// <typeparam name="TService">The type of service.</typeparam>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddSingletonService<TService>(Action<Registration> configurationAction = null)
-            => this.AddSingletonService(typeof(TService), configurationAction);
-
-        /// <summary>
-        /// Registers the specified <see cref="Type"/> as a singleton service.
-        /// </summary>
-        /// <param name="type">The type of service.</param>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddSingletonService(Type type, Action<Registration> configurationAction = null)
-            => this.AddService(type, RegistrationLifetime.Singleton(), configurationAction);
-
-        /// <summary>
         /// Registers an external package as being required for implementations in the registration collection.
         /// </summary>
         /// <param name="externalPackageName">The name of the external package.</param>
