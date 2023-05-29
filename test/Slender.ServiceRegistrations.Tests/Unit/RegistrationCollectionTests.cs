@@ -8,7 +8,7 @@ using Xunit;
 namespace Slender.ServiceRegistrations.Tests.Unit
 {
 
-    public class RegistrationCollectionTests
+    public partial class RegistrationCollectionTests
     {
 
         #region - - - - - - Fields - - - - - -
@@ -42,7 +42,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddAssemblyScan_AddingScanWithRegistrationThatAllowsScannedImplementations_ScannedImplementationsAdded()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
 
             // Act
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
@@ -58,7 +58,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Clear();
 
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
 
             // Act
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
@@ -78,7 +78,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
 
             // Act
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
 
             // Assert
             this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<RegistrationContext>(), typeof(ServiceImplementation)));
@@ -91,7 +91,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
 
             // Act
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
 
             // Assert
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
@@ -106,7 +106,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
 
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
 
             // Act
@@ -122,7 +122,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void ConfigureService_EnablingAllowScanOnRegistrationWithNoPreScannedImplementations_EnablesAllowScan()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
 
             // Act
             _ = this.m_RegistrationCollection.ConfigureService(typeof(IService), r => r.ScanForImplementations());
@@ -140,7 +140,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_AllServicesAndPackagesResolved_DoesNotThrowException()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => _ = r.AddImplementationType<ServiceImplementation>());
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => _ = r.AddImplementationType<ServiceImplementation>());
             _ = this.m_RegistrationCollection.AddRequiredPackage("Package").ResolveRequiredPackage("Package");
 
             // Act
@@ -154,7 +154,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_AbstractServiceRegisteredAsImplementation_ThrowsException()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<IService>();
+            _ = this.m_RegistrationCollection.AddScoped<IService>();
 
             // Act
             var _Exception = Record.Exception(() => this.m_RegistrationCollection.Validate());
@@ -167,7 +167,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_NonAbstractServiceRegisteredAsImplementation_DoesNotThrowException()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<ServiceImplementation>();
+            _ = this.m_RegistrationCollection.AddScoped<ServiceImplementation>();
 
             // Act
             var _Exception = Record.Exception(() => this.m_RegistrationCollection.Validate());
@@ -180,7 +180,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_AbstractServiceUnableToFindScannedImplementation_ThrowsException()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<IService>(r => r.ScanForImplementations());
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations());
 
             // Act
             var _Exception = Record.Exception(() => this.m_RegistrationCollection.Validate());
@@ -193,7 +193,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_NonAbstractServiceUnableToFindScannedImplementation_ThrowsException()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<ServiceImplementation>(r => r.ScanForImplementations());
+            _ = this.m_RegistrationCollection.AddScoped(typeof(ServiceImplementation), r => r.ScanForImplementations());
 
             // Act
             var _Exception = Record.Exception(() => this.m_RegistrationCollection.Validate());
@@ -206,7 +206,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_NotAllServicesAndPackagesResolved_ThrowsException()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddScopedService<IService>();
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => { });
             _ = this.m_RegistrationCollection.AddRequiredPackage("Package");
 
             // Act

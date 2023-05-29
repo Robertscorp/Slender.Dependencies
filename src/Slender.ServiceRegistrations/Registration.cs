@@ -54,6 +54,11 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         public IEnumerable<Type> ImplementationTypes => this.m_Context.ImplementationTypes.AsReadOnly();
 
+        /// <summary>
+        /// The service lifetime of the service registration.
+        /// </summary>
+        public RegistrationLifetime Lifetime => this.m_Context.Lifetime;
+
         internal Action OnScanForImplementations { get; set; }
 
         /// <summary>

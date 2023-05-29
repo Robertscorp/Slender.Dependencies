@@ -13,7 +13,7 @@ namespace Slender.ServiceRegistrations
     /// <summary>
     /// A collection of service registrations that can be used to configure a dependency injection container.
     /// </summary>
-    public class RegistrationCollection : IEnumerable<Registration>
+    public partial class RegistrationCollection : IEnumerable<Registration>
     {
 
         #region - - - - - - Fields - - - - - -
@@ -146,27 +146,26 @@ namespace Slender.ServiceRegistrations
         }
 
         /// <summary>
-        /// Registers <typeparamref name="TService"/> as a scoped service.
-        /// </summary>
-        /// <typeparam name="TService">The type of service.</typeparam>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddScopedService<TService>(Action<Registration> configurationAction = null)
-            => this.AddScopedService(typeof(TService), configurationAction);
-
-        /// <summary>
-        /// Registers the specified <see cref="Type"/> as a scoped service.
+        /// Registers the specified <paramref name="type"/> as a service <see cref="Registration"/> with the specified <paramref name="lifetime"/>.
         /// </summary>
         /// <param name="type">The type of service.</param>
+        /// <param name="lifetime">The lifetime of the service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> or <paramref name="lifetime"/> is null.</exception>
+        /// <exception cref="Exception">Thrown when a <see cref="Registration"/> already exists for the specified <paramref name="type"/>.</exception>
         /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddScopedService(Type type, Action<Registration> configurationAction = null)
-            => this.AddService(type, RegistrationLifetime.Scoped(), configurationAction);
-
-        private RegistrationCollection AddService(Type type, RegistrationLifetime lifetime, Action<Registration> configurationAction)
+        /// <remarks>
+        /// If the specified <paramref name="configurationAction"/> invokes <see cref="Registration.ScanForImplementations"/>, then any
+        /// previously found types which implement the specified service <paramref name="type"/> will be automatically added through 
+        /// <see cref="Registration.AddImplementationType(Type)"/> after <paramref name="configurationAction"/> is invoked.<br/>
+        /// <br/>
+        /// For more information on previously found types, see <see cref="RegistrationCollection.AddAssemblyScan(IAssemblyScan)"/>.
+        /// </remarks>
+        public RegistrationCollection AddService(Type type, RegistrationLifetime lifetime, Action<Registration> configurationAction)
         {
+            if (type is null) throw new ArgumentNullException(nameof(type));
+            if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
+
             if (this.m_RegistrationsByType.ContainsKey(type))
                 throw new Exception($"{type.Name} has already been registered. Use {nameof(ConfigureService)} instead.");
 
@@ -178,46 +177,6 @@ namespace Slender.ServiceRegistrations
 
             return this;
         }
-
-        /// <summary>
-        /// Registers <typeparamref name="TService"/> as a singleton service.
-        /// </summary>
-        /// <typeparam name="TService">The type of service.</typeparam>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddSingletonService<TService>(Action<Registration> configurationAction = null)
-            => this.AddSingletonService(typeof(TService), configurationAction);
-
-        /// <summary>
-        /// Registers the specified <see cref="Type"/> as a singleton service.
-        /// </summary>
-        /// <param name="type">The type of service.</param>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddSingletonService(Type type, Action<Registration> configurationAction = null)
-            => this.AddService(type, RegistrationLifetime.Singleton(), configurationAction);
-
-        /// <summary>
-        /// Registers <typeparamref name="TService"/> as a transient service.
-        /// </summary>
-        /// <typeparam name="TService">The type of service.</typeparam>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddTransientService<TService>(Action<Registration> configurationAction = null)
-            => this.AddTransientService(typeof(TService), configurationAction);
-
-        /// <summary>
-        /// Registers the specified <see cref="Type"/> as a transient service.
-        /// </summary>
-        /// <param name="type">The type of service.</param>
-        /// <param name="configurationAction">An action to configure the registered service.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>After the action is invoked, any matching scanned implementations will be added to the registered service.</remarks>
-        public RegistrationCollection AddTransientService(Type type, Action<Registration> configurationAction = null)
-            => this.AddService(type, RegistrationLifetime.Transient(), configurationAction);
 
         /// <summary>
         /// Registers an external package as being required for implementations in the registration collection.
@@ -304,12 +263,26 @@ namespace Slender.ServiceRegistrations
                     && r.ImplementationInstance == null
                     && (r.AllowScannedImplementationTypes || r.ServiceType.IsAbstract)).ToList();
 
+            var _RegistrationsWithInvalidImplementationTypes
+                = this.Where(r => r.ImplementationTypes.Any(t => t.IsAbstract));
+
             if (_RegistrationsWithoutImplementations.Any())
             {
                 _ = _StringBuilder.AppendLine("The following services don't have any implementations:");
 
                 foreach (var _Registration in _RegistrationsWithoutImplementations)
                     _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
+            }
+
+            if (_RegistrationsWithInvalidImplementationTypes.Any())
+            {
+                _ = _StringBuilder.AppendLine("The following services have invalid implementation types:");
+
+                foreach (var _Registration in _RegistrationsWithInvalidImplementationTypes)
+                    _ = _StringBuilder
+                            .Append(" - ")
+                            .Append(_Registration.ServiceType.Name)
+                            .AppendLine($" ({string.Join(", ", _Registration.ImplementationTypes.Where(r => r.IsAbstract).Select(r => r.Name))})");
             }
 
             if (this.m_RequiredPackages.Any())
