@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Slender.ServiceRegistrations.Tests.Unit
@@ -13,7 +15,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddSingleton_AddingImplementationAsService_RegistersServiceWithImplementation()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(ServiceImplementation), RegistrationLifetime.Singleton()).AddImplementationType<ServiceImplementation>() };
+            var _Expected = new[]
+            {
+                new Registration(typeof(ServiceImplementation))
+                {
+                    ImplementationTypes = new List<Type> { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Singleton()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton<ServiceImplementation>();
@@ -31,7 +40,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             var _Instance = new ServiceImplementation();
-            var _Expected = new[] { new Registration(typeof(ServiceImplementation), RegistrationLifetime.Singleton()).WithImplementationInstance(_Instance) };
+            var _Expected = new[]
+            {
+                new Registration(typeof(ServiceImplementation))
+                {
+                    ImplementationInstance = _Instance,
+                    Lifetime = RegistrationLifetime.Singleton()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton(_Instance);
@@ -48,7 +64,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddSingleton_AddingServiceAndImplementation_RegistersServiceWithImplementation()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Singleton()).AddImplementationType<ServiceImplementation>() };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationTypes = new List<Type> { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Singleton()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton<IService, ServiceImplementation>();
@@ -66,7 +89,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             var _Factory = (ServiceFactory f) => default(IService);
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Singleton()).WithImplementationFactory(_Factory) };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationFactory = _Factory,
+                    Lifetime = RegistrationLifetime.Singleton()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton<IService>(_Factory);
@@ -84,7 +114,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             var _Instance = new ServiceImplementation();
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Singleton()).WithImplementationInstance(_Instance) };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationInstance = _Instance,
+                    Lifetime = RegistrationLifetime.Singleton()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton<IService>(_Instance);
@@ -101,7 +138,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddSingleton_AddingServiceWithNullConfigurationAction_RegistersService()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Singleton()) };
+            var _Expected = new[] { new Registration(typeof(IService)) { Lifetime = RegistrationLifetime.Singleton() } };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton(typeof(IService), null);
@@ -114,7 +151,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddSingleton_AddingServiceWithConfigurationAction_RegistersServiceAndInvokesConfigurationAction()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Singleton()).AddImplementationType<ServiceImplementation>() };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationTypes = new List<Type> { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Singleton()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddSingleton(typeof(IService), r => r.AddImplementationType<ServiceImplementation>());

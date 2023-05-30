@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Slender.ServiceRegistrations.Tests.Unit
@@ -13,7 +15,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddTransient_AddingImplementationAsService_RegistersServiceWithImplementation()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(ServiceImplementation), RegistrationLifetime.Transient()).AddImplementationType<ServiceImplementation>() };
+            var _Expected = new[]
+            {
+                new Registration(typeof(ServiceImplementation))
+                {
+                    ImplementationTypes = new List<Type> { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Transient()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddTransient<ServiceImplementation>();
@@ -30,7 +39,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddTransient_AddingServiceAndImplementation_RegistersServiceWithImplementation()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Transient()).AddImplementationType<ServiceImplementation>() };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationTypes = new List<Type> { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Transient()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddTransient<IService, ServiceImplementation>();
@@ -48,7 +64,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             var _Factory = (ServiceFactory f) => default(IService);
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Transient()).WithImplementationFactory(_Factory) };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationFactory = _Factory,
+                    Lifetime = RegistrationLifetime.Transient()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddTransient<IService>(_Factory);
@@ -65,7 +88,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddTransient_AddingServiceWithNullConfigurationAction_RegistersService()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Transient()) };
+            var _Expected = new[] { new Registration(typeof(IService)) { Lifetime = RegistrationLifetime.Transient() } };
 
             // Act
             _ = this.m_RegistrationCollection.AddTransient(typeof(IService));
@@ -78,7 +101,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddTransient_AddingServiceWithConfigurationAction_RegistersServiceAndInvokesConfigurationAction()
         {
             // Arrange
-            var _Expected = new[] { new Registration(typeof(IService), RegistrationLifetime.Transient()).AddImplementationType<ServiceImplementation>() };
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    ImplementationTypes = new List<Type> { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Transient()
+                }
+            };
 
             // Act
             _ = this.m_RegistrationCollection.AddTransient(typeof(IService), r => r.AddImplementationType<ServiceImplementation>());

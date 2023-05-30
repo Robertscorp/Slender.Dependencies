@@ -4,7 +4,7 @@ namespace Slender.ServiceRegistrations
 {
 
     /// <summary>
-    /// Used to determine the configuration behaviours of a service registration.
+    /// Used to determine the configuration behaviours of a registered service.
     /// </summary>
     public interface IRegistrationBehaviour
     {
@@ -12,45 +12,45 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Methods - - - - - -
 
         /// <summary>
-        /// Adds an implementation type to the the registration context.
+        /// Adds an implementation type to the registered service.
         /// </summary>
-        /// <param name="context">The registration context to update.</param>
-        /// <param name="type">The type that implements or inherits the registered service.</param>
-        void AddImplementationType(RegistrationContext context, Type type);
+        /// <param name="registration">The registration to update.</param>
+        /// <param name="type">A <see cref="Type"/> which implements or inherits the registered service.</param>
+        void AddImplementationType(Registration registration, Type type);
 
         /// <summary>
-        /// Changes the registration context to allow scanned implementation types to be added.
+        /// Changes the registration to allow scanned implementation types to be added.
         /// </summary>
-        /// <param name="context">The registration context to update.</param>
-        void AllowScannedImplementationTypes(RegistrationContext context);
+        /// <param name="registration">The registration to update.</param>
+        void AllowScannedImplementationTypes(Registration registration);
 
         /// <summary>
-        /// Changes the registration behaviour of the registration context.
+        /// Changes the registration behaviour of the registered service.
         /// </summary>
-        /// <param name="context">The registration context to update.</param>
-        /// <param name="behaviour">The new behaviour for the registration context.</param>
-        void UpdateBehaviour(RegistrationContext context, IRegistrationBehaviour behaviour);
+        /// <param name="registration">The registration to update.</param>
+        /// <param name="behaviour">The new behaviour for the registered service.</param>
+        void UpdateBehaviour(Registration registration, IRegistrationBehaviour behaviour);
 
         /// <summary>
-        /// Sets the implementation factory of the registration context.
+        /// Sets the implementation factory of the registered service.
         /// </summary>
-        /// <param name="context">The registration context to update.</param>
+        /// <param name="registration">The registration to update.</param>
         /// <param name="implementationFactory">A factory which produces an instance that can be assigned to a reference of the registered service.</param>
-        void UpdateImplementationFactory(RegistrationContext context, Func<ServiceFactory, object> implementationFactory);
+        void UpdateImplementationFactory(Registration registration, Func<ServiceFactory, object> implementationFactory);
 
         /// <summary>
-        /// Sets the implementation instance of the registration context.
+        /// Sets the implementation instance of the registered service.
         /// </summary>
-        /// <param name="context">The registration context to update.</param>
+        /// <param name="registration">The registration to update.</param>
         /// <param name="implementationInstance">An instance that can be assigned to a reference of the registered service.</param>
-        void UpdateImplementationInstance(RegistrationContext context, object implementationInstance);
+        void UpdateImplementationInstance(Registration registration, object implementationInstance);
 
         /// <summary>
-        /// Changes the service lifetime of the service registration.
+        /// Changes the service lifetime of the registered service.
         /// </summary>
-        /// <param name="context">The registration context to update.</param>
-        /// <param name="lifetime">The new service lifetime for the service registration.</param>
-        void UpdateLifetime(RegistrationContext context, RegistrationLifetime lifetime);
+        /// <param name="registration">The registration to update.</param>
+        /// <param name="lifetime">The new service lifetime for the registered service.</param>
+        void UpdateLifetime(Registration registration, RegistrationLifetime lifetime);
 
         #endregion Methods
 
