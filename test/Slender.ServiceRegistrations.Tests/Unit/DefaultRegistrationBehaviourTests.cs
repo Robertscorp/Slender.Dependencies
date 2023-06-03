@@ -30,49 +30,49 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         private static IRegistrationBehaviour RegistrationBehaviour_MultipleTypes
             => DefaultRegistrationBehaviour.Instance(allowMultipleImplementationTypes: true);
 
-        private static RegistrationContext RegistrationContext_Empty
-            => new();
+        private static Registration Registration_Empty
+            => new(typeof(object));
 
-        private static RegistrationContext RegistrationContextWithFactory
-            => new() { ImplementationFactory = s_ImplementationFactory };
+        private static Registration RegistrationWithFactory
+            => new(typeof(object)) { ImplementationFactory = s_ImplementationFactory };
 
-        private static RegistrationContext RegistrationContextWithInstance
-            => new() { ImplementationInstance = s_ImplementationInstance };
+        private static Registration RegistrationWithInstance
+            => new(typeof(object)) { ImplementationInstance = s_ImplementationInstance };
 
-        private static RegistrationContext RegistrationContextWithMultipleTypes
-            => new() { ImplementationTypes = new List<Type>() { typeof(object), typeof(object) } };
+        private static Registration RegistrationWithMultipleTypes
+            => new(typeof(object)) { ImplementationTypes = new List<Type>() { typeof(object), typeof(object) } };
 
-        private static RegistrationContext RegistrationContextWithSingleType
-            => new() { ImplementationTypes = new List<Type>() { typeof(object) } };
+        private static Registration RegistrationWithSingleType
+            => new(typeof(object)) { ImplementationTypes = new List<Type>() { typeof(object) } };
 
         #endregion Properties
 
         #region - - - - - - AddImplementationType Tests - - - - - -
 
         [Theory]
-        [MemberData(nameof(AddImplementationType_VariousScenarios_ResultsInExpectedRegistrationContext_GetTestData))]
-        public void AddImplementationType_VariousScenarios_ResultsInExpectedRegistrationContext(RegistrationContext startingContext, RegistrationContext expectedContext, IRegistrationBehaviour behaviour)
+        [MemberData(nameof(AddImplementationType_VariousScenarios_ResultsInExpectedRegistration_GetTestData))]
+        public void AddImplementationType_VariousScenarios_ResultsInExpectedRegistration(Registration startingRegistration, Registration expectedRegistration, IRegistrationBehaviour behaviour)
         {
             // Arrange
 
             // Act
-            behaviour.AddImplementationType(startingContext, typeof(object));
+            behaviour.AddImplementationType(startingRegistration, typeof(object));
 
             // Assert
-            _ = startingContext.Should().BeEquivalentTo(expectedContext);
+            _ = startingRegistration.Should().BeEquivalentTo(expectedRegistration);
         }
 
-        public static IEnumerable<object[]> AddImplementationType_VariousScenarios_ResultsInExpectedRegistrationContext_GetTestData()
+        public static IEnumerable<object[]> AddImplementationType_VariousScenarios_ResultsInExpectedRegistration_GetTestData()
             => new[]
             {
-                new object[] { RegistrationContext_Empty, RegistrationContextWithSingleType, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithSingleType, RegistrationContextWithSingleType, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithInstance, RegistrationContextWithInstance, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithFactory, RegistrationContextWithFactory, RegistrationBehaviour_Default },
-                new object[] { RegistrationContext_Empty, RegistrationContextWithSingleType, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithSingleType, RegistrationContextWithMultipleTypes, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithInstance, RegistrationContextWithInstance, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithFactory, RegistrationContextWithFactory, RegistrationBehaviour_MultipleTypes },
+                new object[] { Registration_Empty, RegistrationWithSingleType, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithSingleType, RegistrationWithSingleType, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithInstance, RegistrationWithInstance, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithFactory, RegistrationWithFactory, RegistrationBehaviour_Default },
+                new object[] { Registration_Empty, RegistrationWithSingleType, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithSingleType, RegistrationWithMultipleTypes, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithInstance, RegistrationWithInstance, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithFactory, RegistrationWithFactory, RegistrationBehaviour_MultipleTypes },
             };
 
         #endregion AddImplementationType Tests
@@ -80,11 +80,11 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         #region - - - - - - AllowScannedImplementationTypes Tests - - - - - -
 
         [Fact]
-        public void AllowScannedImplementationTypes_AnyRequest_RegistrationContextAllowsScannedImplementationTypes()
+        public void AllowScannedImplementationTypes_AnyRequest_RegistrationAllowsScannedImplementationTypes()
         {
             // Arrange
-            var _Actual = new RegistrationContext();
-            var _Expected = new RegistrationContext() { AllowScannedImplementationTypes = true };
+            var _Actual = new Registration(typeof(object));
+            var _Expected = new Registration(typeof(object)) { AllowScannedImplementationTypes = true };
 
             // Act
             RegistrationBehaviour_Default.AllowScannedImplementationTypes(_Actual);
@@ -101,27 +101,27 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void UpdateLifetime_CanUpdateBehaviour_BehaviourChanged()
         {
             // Arrange
-            var _Context = RegistrationContext_Empty;
+            var _Registration = Registration_Empty;
 
             // Act
-            _Context.Behaviour.UpdateBehaviour(_Context, this.m_RegistrationBehaviour);
+            _Registration.Behaviour.UpdateBehaviour(_Registration, this.m_RegistrationBehaviour);
 
             // Assert
-            _ = _Context.Behaviour.Should().Be(this.m_RegistrationBehaviour);
+            _ = _Registration.Behaviour.Should().Be(this.m_RegistrationBehaviour);
         }
 
         [Fact]
         public void UpdateLifetime_CannotUpdateBehaviour_BehaviourDoesNotChange()
         {
             // Arrange
-            var _Context = new RegistrationContext { Behaviour = RegistrationBehaviour_DisableChange };
-            var _Behaviour = _Context.Behaviour;
+            var _Registration = new Registration(typeof(object)) { Behaviour = RegistrationBehaviour_DisableChange };
+            var _Behaviour = _Registration.Behaviour;
 
             // Act
-            _Context.Behaviour.UpdateBehaviour(_Context, this.m_RegistrationBehaviour);
+            _Registration.Behaviour.UpdateBehaviour(_Registration, this.m_RegistrationBehaviour);
 
             // Assert
-            _ = _Context.Behaviour.Should().Be(_Behaviour);
+            _ = _Registration.Behaviour.Should().Be(_Behaviour);
         }
 
         #endregion UpdateBehaviour Tests
@@ -129,29 +129,29 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         #region - - - - - - UpdateImplementationFactory Tests - - - - - -
 
         [Theory]
-        [MemberData(nameof(UpdateImplementationFactory_VariousScenarios_ResultsInExpectedRegistrationContext_GetTestData))]
-        public void UpdateImplementationFactory_VariousScenarios_ResultsInExpectedRegistrationContext(RegistrationContext startingContext, RegistrationContext expectedContext, IRegistrationBehaviour behaviour)
+        [MemberData(nameof(UpdateImplementationFactory_VariousScenarios_ResultsInExpectedRegistration_GetTestData))]
+        public void UpdateImplementationFactory_VariousScenarios_ResultsInExpectedRegistration(Registration startingRegistration, Registration expectedRegistration, IRegistrationBehaviour behaviour)
         {
             // Arrange
 
             // Act
-            behaviour.UpdateImplementationFactory(startingContext, s_ImplementationFactory);
+            behaviour.UpdateImplementationFactory(startingRegistration, s_ImplementationFactory);
 
             // Assert
-            _ = startingContext.Should().BeEquivalentTo(expectedContext);
+            _ = startingRegistration.Should().BeEquivalentTo(expectedRegistration);
         }
 
-        public static IEnumerable<object[]> UpdateImplementationFactory_VariousScenarios_ResultsInExpectedRegistrationContext_GetTestData()
+        public static IEnumerable<object[]> UpdateImplementationFactory_VariousScenarios_ResultsInExpectedRegistration_GetTestData()
             => new[]
             {
-                new object[] { RegistrationContext_Empty, RegistrationContextWithFactory, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithSingleType, RegistrationContextWithSingleType, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithInstance, RegistrationContextWithInstance, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithFactory, RegistrationContextWithFactory, RegistrationBehaviour_Default },
-                new object[] { RegistrationContext_Empty, RegistrationContextWithFactory, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithSingleType, RegistrationContextWithSingleType, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithInstance, RegistrationContextWithInstance, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithFactory, RegistrationContextWithFactory, RegistrationBehaviour_MultipleTypes },
+                new object[] { Registration_Empty, RegistrationWithFactory, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithSingleType, RegistrationWithSingleType, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithInstance, RegistrationWithInstance, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithFactory, RegistrationWithFactory, RegistrationBehaviour_Default },
+                new object[] { Registration_Empty, RegistrationWithFactory, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithSingleType, RegistrationWithSingleType, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithInstance, RegistrationWithInstance, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithFactory, RegistrationWithFactory, RegistrationBehaviour_MultipleTypes },
             };
 
         #endregion UpdateImplementationFactory Tests
@@ -159,29 +159,29 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         #region - - - - - - UpdateImplementationInstance Tests - - - - - -
 
         [Theory]
-        [MemberData(nameof(UpdateImplementationInstance_VariousScenarios_ResultsInExpectedRegistrationContext_GetTestData))]
-        public void UpdateImplementationInstance_VariousScenarios_ResultsInExpectedRegistrationContext(RegistrationContext startingContext, RegistrationContext expectedContext, IRegistrationBehaviour behaviour)
+        [MemberData(nameof(UpdateImplementationInstance_VariousScenarios_ResultsInExpectedRegistration_GetTestData))]
+        public void UpdateImplementationInstance_VariousScenarios_ResultsInExpectedRegistration(Registration startingRegistration, Registration expectedRegistration, IRegistrationBehaviour behaviour)
         {
             // Arrange
 
             // Act
-            behaviour.UpdateImplementationInstance(startingContext, s_ImplementationInstance);
+            behaviour.UpdateImplementationInstance(startingRegistration, s_ImplementationInstance);
 
             // Assert
-            _ = startingContext.Should().BeEquivalentTo(expectedContext);
+            _ = startingRegistration.Should().BeEquivalentTo(expectedRegistration);
         }
 
-        public static IEnumerable<object[]> UpdateImplementationInstance_VariousScenarios_ResultsInExpectedRegistrationContext_GetTestData()
+        public static IEnumerable<object[]> UpdateImplementationInstance_VariousScenarios_ResultsInExpectedRegistration_GetTestData()
             => new[]
             {
-                new object[] { RegistrationContext_Empty, RegistrationContextWithInstance, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithSingleType, RegistrationContextWithSingleType, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithInstance, RegistrationContextWithInstance, RegistrationBehaviour_Default },
-                new object[] { RegistrationContextWithFactory, RegistrationContextWithFactory, RegistrationBehaviour_Default },
-                new object[] { RegistrationContext_Empty, RegistrationContextWithInstance, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithSingleType, RegistrationContextWithSingleType, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithInstance, RegistrationContextWithInstance, RegistrationBehaviour_MultipleTypes },
-                new object[] { RegistrationContextWithFactory, RegistrationContextWithFactory, RegistrationBehaviour_MultipleTypes },
+                new object[] { Registration_Empty, RegistrationWithInstance, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithSingleType, RegistrationWithSingleType, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithInstance, RegistrationWithInstance, RegistrationBehaviour_Default },
+                new object[] { RegistrationWithFactory, RegistrationWithFactory, RegistrationBehaviour_Default },
+                new object[] { Registration_Empty, RegistrationWithInstance, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithSingleType, RegistrationWithSingleType, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithInstance, RegistrationWithInstance, RegistrationBehaviour_MultipleTypes },
+                new object[] { RegistrationWithFactory, RegistrationWithFactory, RegistrationBehaviour_MultipleTypes },
             };
 
         #endregion UpdateImplementationInstance Tests
@@ -192,13 +192,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void UpdateLifetime_TryChangeLifetime_LifetimeCannotBeChanged()
         {
             // Arrange
-            var _Context = RegistrationContext_Empty;
+            var _Registration = Registration_Empty;
 
             // Act
-            _Context.Behaviour.UpdateLifetime(_Context, RegistrationLifetime.Singleton());
+            _Registration.Behaviour.UpdateLifetime(_Registration, RegistrationLifetime.Singleton());
 
             // Assert
-            _ = _Context.Should().BeEquivalentTo(RegistrationContext_Empty);
+            _ = _Registration.Should().BeEquivalentTo(Registration_Empty);
         }
 
         #endregion UpdateLifetime Tests

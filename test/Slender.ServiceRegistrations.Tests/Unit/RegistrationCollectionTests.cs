@@ -30,8 +30,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                     .Returns(() => this.m_AssemblyTypes.ToArray());
 
             _ = this.m_MockRegistrationBehaviour
-                    .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<RegistrationContext>()))
-                    .Callback((RegistrationContext context) => context.AllowScannedImplementationTypes = true);
+                    .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()))
+                    .Callback((Registration registration) => registration.AllowScannedImplementationTypes = true);
         }
 
         #endregion Constructors
@@ -48,7 +48,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
 
             // Assert
-            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<RegistrationContext>(), typeof(ServiceImplementation)));
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Registration>(), typeof(ServiceImplementation)));
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
@@ -81,7 +81,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
 
             // Assert
-            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<RegistrationContext>(), typeof(ServiceImplementation)));
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Registration>(), typeof(ServiceImplementation)));
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
@@ -113,8 +113,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.ConfigureService(typeof(IService), r => r.ScanForImplementations());
 
             // Assert
-            this.m_MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<RegistrationContext>()));
-            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<RegistrationContext>(), typeof(ServiceImplementation)));
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()));
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Registration>(), typeof(ServiceImplementation)));
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
@@ -128,7 +128,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.ConfigureService(typeof(IService), r => r.ScanForImplementations());
 
             // Assert
-            this.m_MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<RegistrationContext>()));
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()));
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 

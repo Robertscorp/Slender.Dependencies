@@ -2,7 +2,7 @@
 {
 
     /// <summary>
-    /// An enumeration of possible service registration lifetimes.
+    /// An enumeration of possible registered service lifetimes.
     /// </summary>
     public class RegistrationLifetime
     {
@@ -20,7 +20,7 @@
         #region - - - - - - Properties - - - - - -
 
         /// <summary>
-        /// Used to determine if service registrations with this lifetime can have implementation instances registered.
+        /// Used to determine if registered services with this lifetime can have implementation instances registered.
         /// </summary>
         public bool AllowImplementationInstances { get; }
 

@@ -32,41 +32,41 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// Gets a new instance of the default registration behaviour.
         /// </summary>
-        /// <param name="allowBehaviourToChange">Determines if a service registration can have its behaviour changed. Default = true.</param>
-        /// <param name="allowMultipleImplementationTypes">Determines if a service registration can have multiple implementation types registered against it. Default = false.</param>
+        /// <param name="allowBehaviourToChange">Determines if a registered service can have its behaviour changed. Default = true.</param>
+        /// <param name="allowMultipleImplementationTypes">Determines if a registered service can have multiple implementation types registered against it. Default = false.</param>
         /// <returns>An instance of the default registration behaviour.</returns>
         public static DefaultRegistrationBehaviour Instance(bool allowBehaviourToChange = true, bool allowMultipleImplementationTypes = false)
             => new DefaultRegistrationBehaviour(allowBehaviourToChange, allowMultipleImplementationTypes);
 
-        private bool CanRegisterImplementation(RegistrationContext context, bool isImplementationType)
-            => context.ImplementationFactory == null &&
-                context.ImplementationInstance == null &&
-                (!context.ImplementationTypes.Any() || (this.m_AllowMultipleImplementationTypes && isImplementationType));
+        private bool CanRegisterImplementation(Registration registration, bool isImplementationType)
+            => registration.ImplementationFactory == null &&
+                registration.ImplementationInstance == null &&
+                (!registration.ImplementationTypes.Any() || (this.m_AllowMultipleImplementationTypes && isImplementationType));
 
-        void IRegistrationBehaviour.AddImplementationType(RegistrationContext context, Type type)
+        void IRegistrationBehaviour.AddImplementationType(Registration registration, Type type)
         {
-            if (this.CanRegisterImplementation(context, true)) context.ImplementationTypes.Add(type);
+            if (this.CanRegisterImplementation(registration, true)) registration.ImplementationTypes.Add(type);
         }
 
-        void IRegistrationBehaviour.AllowScannedImplementationTypes(RegistrationContext context)
-            => context.AllowScannedImplementationTypes = true;
+        void IRegistrationBehaviour.AllowScannedImplementationTypes(Registration registration)
+            => registration.AllowScannedImplementationTypes = true;
 
-        void IRegistrationBehaviour.UpdateBehaviour(RegistrationContext context, IRegistrationBehaviour behaviour)
+        void IRegistrationBehaviour.UpdateBehaviour(Registration registration, IRegistrationBehaviour behaviour)
         {
-            if (this.m_AllowBehaviourToChange) context.Behaviour = behaviour;
+            if (this.m_AllowBehaviourToChange) registration.Behaviour = behaviour;
         }
 
-        void IRegistrationBehaviour.UpdateImplementationFactory(RegistrationContext context, Func<ServiceFactory, object> implementationFactory)
+        void IRegistrationBehaviour.UpdateImplementationFactory(Registration registration, Func<ServiceFactory, object> implementationFactory)
         {
-            if (this.CanRegisterImplementation(context, false)) context.ImplementationFactory = implementationFactory;
+            if (this.CanRegisterImplementation(registration, false)) registration.ImplementationFactory = implementationFactory;
         }
 
-        void IRegistrationBehaviour.UpdateImplementationInstance(RegistrationContext context, object implementationInstance)
+        void IRegistrationBehaviour.UpdateImplementationInstance(Registration registration, object implementationInstance)
         {
-            if (this.CanRegisterImplementation(context, false)) context.ImplementationInstance = implementationInstance;
+            if (this.CanRegisterImplementation(registration, false)) registration.ImplementationInstance = implementationInstance;
         }
 
-        void IRegistrationBehaviour.UpdateLifetime(RegistrationContext context, RegistrationLifetime lifetime) { }
+        void IRegistrationBehaviour.UpdateLifetime(Registration registration, RegistrationLifetime lifetime) { }
 
         #endregion Methods
 

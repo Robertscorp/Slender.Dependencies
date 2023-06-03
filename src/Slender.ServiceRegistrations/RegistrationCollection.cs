@@ -11,15 +11,15 @@ namespace Slender.ServiceRegistrations
 {
 
     /// <summary>
-    /// A collection of service registrations that can be used to configure a dependency injection container.
+    /// A collection of registered services that can be used to configure a dependency injection container.
     /// </summary>
     public partial class RegistrationCollection : IEnumerable<Registration>
     {
 
         #region - - - - - - Fields - - - - - -
 
+        private readonly Dictionary<Type, RegistrationBuilder> m_BuildersByType = new Dictionary<Type, RegistrationBuilder>();
         private readonly Dictionary<Type, IEnumerable<Type>> m_ImplementationsByType = new Dictionary<Type, IEnumerable<Type>>();
-        private readonly Dictionary<Type, Registration> m_RegistrationsByType = new Dictionary<Type, Registration>();
         private readonly List<string> m_RequiredPackages = new List<string>();
 
         private IAssemblyScan m_AssemblyScan = AssemblyScan.Empty();
@@ -29,7 +29,7 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Constructors - - - - - -
 
         /// <summary>
-        /// Creates a new instance of a service registration collection.
+        /// Creates a new instance of a registered service collection.
         /// </summary>
         public RegistrationCollection() { }
 
@@ -76,65 +76,65 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
-        private void AddImplementations(Registration registration)
+        private void AddBuilder(RegistrationBuilder builder)
         {
-            if (this.m_ImplementationsByType.TryGetValue(registration.ServiceType, out var _Implementations) && registration.AllowScannedImplementationTypes)
+            builder.OnScanForImplementations = () => this.AddImplementations(builder);
+
+            this.m_BuildersByType.Add(builder.Registration.ServiceType, builder);
+            this.AddImplementations(builder);
+        }
+
+        private void AddImplementations(RegistrationBuilder builder)
+        {
+            if (this.m_ImplementationsByType.TryGetValue(builder.Registration.ServiceType, out var _Implementations) && builder.Registration.AllowScannedImplementationTypes)
             {
-                this.AddImplementations(registration, _Implementations);
-                _ = this.m_ImplementationsByType.Remove(registration.ServiceType);
+                this.AddImplementations(builder, _Implementations);
+                _ = this.m_ImplementationsByType.Remove(builder.Registration.ServiceType);
             }
         }
 
-        private void AddImplementations(Registration registration, IEnumerable<Type> implementations)
+        private void AddImplementations(RegistrationBuilder builder, IEnumerable<Type> implementations)
         {
             foreach (var _Implementation in implementations)
-                _ = registration.AddImplementationType(_Implementation);
+                _ = builder.AddImplementationType(_Implementation);
         }
 
         private void AddImplementations(Type service, IEnumerable<Type> implementations)
         {
-            if (this.m_RegistrationsByType.TryGetValue(service, out var _Registration) && _Registration.AllowScannedImplementationTypes)
-                this.AddImplementations(_Registration, implementations);
+            if (this.m_BuildersByType.TryGetValue(service, out var _Builder) && _Builder.Registration.AllowScannedImplementationTypes)
+                this.AddImplementations(_Builder, implementations);
             else if (this.m_ImplementationsByType.TryGetValue(service, out var _Implementations))
                 this.m_ImplementationsByType[service] = _Implementations.Union(implementations);
             else
                 this.m_ImplementationsByType.Add(service, implementations);
         }
 
-        private void AddRegistration(Registration registration)
-        {
-            registration.OnScanForImplementations = () => this.AddImplementations(registration);
-
-            this.m_RegistrationsByType.Add(registration.ServiceType, registration);
-            this.AddImplementations(registration);
-        }
-
         /// <summary>
-        /// Adds all registered services from the provided registration collection to this registration collection.
+        /// Adds all registered services from the specified <paramref name="registrations"/> to this registration collection.
         /// </summary>
         /// <param name="registrations">The registration collection to add.</param>
         /// <returns>Itself.</returns>
-        /// <exception cref="Exception">Thrown when a service in the provided registration collection already exists in this registration collection.</exception>
+        /// <exception cref="Exception">Thrown when a service in the specified <paramref name="registrations"/> already exists in this registration collection.</exception>
         public RegistrationCollection AddRegistrationCollection(RegistrationCollection registrations)
         {
-            var _Registrations = registrations.ToArray();
+            var _Builders = registrations.m_BuildersByType.Values;
 
-            var _ExistingRegistration = _Registrations.Where(r => this.m_RegistrationsByType.ContainsKey(r.ServiceType)).ToArray();
-            if (_ExistingRegistration.Any())
+            var _ExistingBuilders = _Builders.Where(b => this.m_BuildersByType.ContainsKey(b.Registration.ServiceType)).ToList();
+            if (_ExistingBuilders.Any())
             {
                 var _StringBuilder = new StringBuilder(64);
                 _ = _StringBuilder.AppendLine("Could not add Registration Collection, as the following services are already registered:");
 
-                foreach (var _Registration in _ExistingRegistration)
-                    _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
+                foreach (var _Builder in _ExistingBuilders)
+                    _ = _StringBuilder.Append(" - ").AppendLine(_Builder.Registration.ServiceType.Name);
 
                 _ = _StringBuilder.AppendLine().AppendLine("This may be caused by scanning for registrations, or the order of your registrations.");
 
                 throw new Exception(_StringBuilder.ToString());
             }
 
-            foreach (var _Registration in _Registrations)
-                this.AddRegistration(_Registration);
+            foreach (var _Builder in _Builders)
+                this.AddBuilder(_Builder);
 
             foreach (var _ImplementationsByType in registrations.m_ImplementationsByType)
                 this.AddImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
@@ -146,34 +146,34 @@ namespace Slender.ServiceRegistrations
         }
 
         /// <summary>
-        /// Registers the specified <paramref name="type"/> as a service <see cref="Registration"/> with the specified <paramref name="lifetime"/>.
+        /// Registers the specified <paramref name="type"/> as a service with the specified <paramref name="lifetime"/>.
         /// </summary>
         /// <param name="type">The type of service.</param>
         /// <param name="lifetime">The lifetime of the service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> or <paramref name="lifetime"/> is null.</exception>
-        /// <exception cref="Exception">Thrown when a <see cref="Registration"/> already exists for the specified <paramref name="type"/>.</exception>
+        /// <exception cref="Exception">Thrown when there is already a registered service of the specified <paramref name="type"/>.</exception>
         /// <returns>Itself.</returns>
         /// <remarks>
-        /// If the specified <paramref name="configurationAction"/> invokes <see cref="Registration.ScanForImplementations"/>, then any
+        /// If the specified <paramref name="configurationAction"/> invokes <see cref="RegistrationBuilder.ScanForImplementations"/>, then any
         /// previously found types which implement the specified service <paramref name="type"/> will be automatically added through 
-        /// <see cref="Registration.AddImplementationType(Type)"/> after <paramref name="configurationAction"/> is invoked.<br/>
+        /// <see cref="RegistrationBuilder.AddImplementationType(Type)"/> after <paramref name="configurationAction"/> is invoked.<br/>
         /// <br/>
         /// For more information on previously found types, see <see cref="RegistrationCollection.AddAssemblyScan(IAssemblyScan)"/>.
         /// </remarks>
-        public RegistrationCollection AddService(Type type, RegistrationLifetime lifetime, Action<Registration> configurationAction)
+        public RegistrationCollection AddService(Type type, RegistrationLifetime lifetime, Action<RegistrationBuilder> configurationAction)
         {
             if (type is null) throw new ArgumentNullException(nameof(type));
             if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
 
-            if (this.m_RegistrationsByType.ContainsKey(type))
+            if (this.m_BuildersByType.ContainsKey(type))
                 throw new Exception($"{type.Name} has already been registered. Use {nameof(ConfigureService)} instead.");
 
-            var _Registration = new Registration(type, lifetime);
+            var _Builder = new RegistrationBuilder(type, lifetime);
 
-            configurationAction?.Invoke(_Registration);
+            configurationAction?.Invoke(_Builder);
 
-            this.AddRegistration(_Registration);
+            this.AddBuilder(_Builder);
 
             return this;
         }
@@ -204,9 +204,9 @@ namespace Slender.ServiceRegistrations
         /// <param name="type">The type of service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
         /// <returns>Itself.</returns>
-        public RegistrationCollection ConfigureService(Type type, Action<Registration> configurationAction)
+        public RegistrationCollection ConfigureService(Type type, Action<RegistrationBuilder> configurationAction)
         {
-            _ = this.m_RegistrationsByType.TryGetValue(type, out var _Registration);
+            _ = this.m_BuildersByType.TryGetValue(type, out var _Registration);
 
             configurationAction(_Registration);
 
@@ -214,10 +214,10 @@ namespace Slender.ServiceRegistrations
         }
 
         IEnumerator<Registration> IEnumerable<Registration>.GetEnumerator()
-            => this.m_RegistrationsByType.Values.GetEnumerator();
+            => this.m_BuildersByType.Values.Select(b => b.Registration).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => ((IEnumerable<Registration>)this).GetEnumerator();
+            => ((IEnumerable<RegistrationBuilder>)this).GetEnumerator();
 
         /// <summary>
         /// Informs the RegistrationCollection that the external package no longer needs to be tracked.
@@ -239,7 +239,7 @@ namespace Slender.ServiceRegistrations
         {
             new ServiceScanVisitor
             {
-                OnServiceFound = t => { if (!this.m_RegistrationsByType.ContainsKey(t)) serviceRegistrationAction(this, t); }
+                OnServiceFound = t => { if (!this.m_BuildersByType.ContainsKey(t)) serviceRegistrationAction(this, t); }
             }.VisitAssemblyScan(this.m_AssemblyScan);
 
             this.m_AssemblyScan = AssemblyScan.Empty();
@@ -256,33 +256,35 @@ namespace Slender.ServiceRegistrations
         {
             var _StringBuilder = new StringBuilder(64);
 
-            var _RegistrationsWithoutImplementations
-                = this.Where(r =>
-                    !r.ImplementationTypes.Any()
-                    && r.ImplementationFactory == null
-                    && r.ImplementationInstance == null
-                    && (r.AllowScannedImplementationTypes || r.ServiceType.IsAbstract)).ToList();
+            var _BuildersWithoutImplementations
+                = this.m_BuildersByType.Values
+                    .Where(b =>
+                        !b.Registration.ImplementationTypes.Any()
+                        && b.Registration.ImplementationFactory == null
+                        && b.Registration.ImplementationInstance == null
+                        && (b.Registration.AllowScannedImplementationTypes || b.Registration.ServiceType.IsAbstract))
+                    .ToList();
 
-            var _RegistrationsWithInvalidImplementationTypes
-                = this.Where(r => r.ImplementationTypes.Any(t => t.IsAbstract));
+            var _BuildersWithInvalidImplementationTypes
+                = this.m_BuildersByType.Values.Where(b => b.Registration.ImplementationTypes.Any(t => t.IsAbstract));
 
-            if (_RegistrationsWithoutImplementations.Any())
+            if (_BuildersWithoutImplementations.Any())
             {
                 _ = _StringBuilder.AppendLine("The following services don't have any implementations:");
 
-                foreach (var _Registration in _RegistrationsWithoutImplementations)
-                    _ = _StringBuilder.Append(" - ").AppendLine(_Registration.ServiceType.Name);
+                foreach (var _Builder in _BuildersWithoutImplementations)
+                    _ = _StringBuilder.Append(" - ").AppendLine(_Builder.Registration.ServiceType.Name);
             }
 
-            if (_RegistrationsWithInvalidImplementationTypes.Any())
+            if (_BuildersWithInvalidImplementationTypes.Any())
             {
                 _ = _StringBuilder.AppendLine("The following services have invalid implementation types:");
 
-                foreach (var _Registration in _RegistrationsWithInvalidImplementationTypes)
+                foreach (var _Builder in _BuildersWithInvalidImplementationTypes)
                     _ = _StringBuilder
                             .Append(" - ")
-                            .Append(_Registration.ServiceType.Name)
-                            .AppendLine($" ({string.Join(", ", _Registration.ImplementationTypes.Where(r => r.IsAbstract).Select(r => r.Name))})");
+                            .Append(_Builder.Registration.ServiceType.Name)
+                            .AppendLine($" ({string.Join(", ", _Builder.Registration.ImplementationTypes.Where(r => r.IsAbstract).Select(r => r.Name))})");
             }
 
             if (this.m_RequiredPackages.Any())
