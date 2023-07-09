@@ -36,7 +36,7 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Methods - - - - - -
 
         /// <summary>
-        /// Adds <typeparamref name="TImplementation"/> as an implementation type to the the registered service.
+        /// Adds <typeparamref name="TImplementation"/> as an implementation type to the registered service.
         /// </summary>
         /// <typeparam name="TImplementation">The implementation type that implements or inherits the registered service.</typeparam>
         /// <returns>Itself.</returns>
@@ -44,7 +44,7 @@ namespace Slender.ServiceRegistrations
             => this.AddImplementationType(typeof(TImplementation));
 
         /// <summary>
-        /// Adds an implementation type to the the registered service.
+        /// Adds an implementation type to the registered service.
         /// </summary>
         /// <param name="implementationType">The type that implements or inherits the registered service.</param>
         /// <returns>Itself.</returns>
