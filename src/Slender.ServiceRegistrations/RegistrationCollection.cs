@@ -213,6 +213,13 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
+        /// <summary>
+        /// Gets all required packages that have not been resolved.
+        /// </summary>
+        /// <returns>A read-only collection of all required packages that have not been resolved.</returns>
+        public ReadOnlyCollection<string> GetUnresolvedRequiredPackages()
+            => new ReadOnlyCollection<string>(this.m_RequiredPackages);
+
         IEnumerator<Registration> IEnumerable<Registration>.GetEnumerator()
             => this.m_BuildersByType.Values.Select(b => b.Registration).GetEnumerator();
 

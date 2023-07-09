@@ -134,6 +134,25 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #endregion ConfigureService Tests
 
+        #region - - - - - - GetUnresolvedRequiredPackages Tests - - - - - -
+
+        [Fact]
+        public void GetUnresolvedRequiredPackages_AnyRequest_ReturnsAllUnresolvedRequiredPackages()
+        {
+            // Arrange
+            _ = this.m_RegistrationCollection.AddRequiredPackage("PackageA");
+
+            var _Expected = new[] { "PackageA" };
+
+            // Act
+            var _Actual = this.m_RegistrationCollection.GetUnresolvedRequiredPackages();
+
+            // Assert
+            _ = _Actual.Should().BeEquivalentTo(_Expected);
+        }
+
+        #endregion GetUnresolvedRequiredPackages Tests
+
         #region - - - - - - Validate Tests - - - - - -
 
         [Fact]
