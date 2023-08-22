@@ -29,7 +29,7 @@ namespace Slender.ServiceRegistrations
 
         internal Action OnScanForImplementations { get; set; }
 
-        internal Registration Registration { get; }
+        internal Registration Registration { get; private set; }
 
         #endregion Properties
 
@@ -117,6 +117,34 @@ namespace Slender.ServiceRegistrations
             if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
 
             this.Registration.Behaviour.UpdateLifetime(this.Registration, lifetime);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the details of the registered service.
+        /// </summary>
+        /// <param name="newRegistration">The new details for the registered service.</param>
+        /// <param name="oldRegistration">The old details of the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="newRegistration"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="newRegistration"/> has a different <see cref="Registration.ServiceType"/>.</exception>
+        public RegistrationBuilder WithRegistration(Registration newRegistration, out Registration oldRegistration)
+        {
+            if (newRegistration is null) throw new ArgumentNullException(nameof(newRegistration));
+            if (newRegistration.ServiceType != this.Registration.ServiceType) throw new ArgumentException("Cannot change the type of the registered service.");
+
+            oldRegistration = this.Registration;
+
+            this.Registration = new Registration(this.Registration.ServiceType)
+            {
+                AllowScannedImplementationTypes = newRegistration.AllowScannedImplementationTypes,
+                Behaviour = newRegistration.Behaviour,
+                ImplementationFactory = newRegistration.ImplementationFactory,
+                ImplementationInstance = newRegistration.ImplementationInstance,
+                ImplementationTypes = newRegistration.ImplementationTypes,
+                Lifetime = newRegistration.Lifetime
+            };
 
             return this;
         }
