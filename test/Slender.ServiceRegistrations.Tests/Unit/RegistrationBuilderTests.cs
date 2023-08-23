@@ -45,6 +45,22 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
+        [Fact]
+        public void AddImplementationType_SameGenericAddedMultipleTimes_OnlyAddsTypeOnce()
+        {
+            // Arrange
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.AddImplementationType(It.IsAny<Registration>(), It.IsAny<Type>()))
+                    .Callback((Registration r, Type t) => r.ImplementationTypes.Add(t));
+
+            // Act
+            _ = this.m_Builder.AddImplementationType<object>();
+            _ = this.m_Builder.AddImplementationType<object>();
+
+            // Assert
+            _ = this.m_Builder.Registration.ImplementationTypes.Should().BeEquivalentTo(new[] { typeof(object) });
+        }
+
         #endregion AddImplementationType<TImplementation> Tests
 
         #region - - - - - - AddImplementationType Tests - - - - - -
@@ -66,6 +82,22 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Assert
             this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(this.m_Builder.Registration, typeof(object)), Times.Once());
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void AddImplementationType_SameTypeAddedMultipleTimes_OnlyAddsTypeOnce()
+        {
+            // Arrange
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.AddImplementationType(It.IsAny<Registration>(), It.IsAny<Type>()))
+                    .Callback((Registration r, Type t) => r.ImplementationTypes.Add(t));
+
+            // Act
+            _ = this.m_Builder.AddImplementationType(typeof(object));
+            _ = this.m_Builder.AddImplementationType(typeof(object));
+
+            // Assert
+            _ = this.m_Builder.Registration.ImplementationTypes.Should().BeEquivalentTo(new[] { typeof(object) });
         }
 
         #endregion AddImplementationType Tests

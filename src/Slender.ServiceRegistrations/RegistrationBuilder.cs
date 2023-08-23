@@ -53,7 +53,8 @@ namespace Slender.ServiceRegistrations
         {
             if (implementationType is null) throw new ArgumentNullException(nameof(implementationType));
 
-            this.Registration.Behaviour.AddImplementationType(this.Registration, implementationType);
+            if (!this.Registration.ImplementationTypes.Contains(implementationType))
+                this.Registration.Behaviour.AddImplementationType(this.Registration, implementationType);
 
             return this;
         }
