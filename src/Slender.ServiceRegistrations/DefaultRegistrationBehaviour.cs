@@ -51,6 +51,31 @@ namespace Slender.ServiceRegistrations
         void IRegistrationBehaviour.AllowScannedImplementationTypes(Registration registration)
             => registration.AllowScannedImplementationTypes = true;
 
+        void IRegistrationBehaviour.MergeRegistration(RegistrationBuilder builder, Registration registration)
+        {
+            // Force the builder to take on the incoming registration, so any custom behaviours and provided implementations will carry through the merge.
+            _ = builder.WithRegistration(registration, out registration);
+
+            // Try and restore the original behaviour, if the incoming behaviour allows that.
+            _ = builder.WithRegistrationBehaviour(registration.Behaviour);
+
+            if (registration.AllowScannedImplementationTypes)
+                _ = builder.ScanForImplementations();
+
+            if (registration.ImplementationFactory != null)
+                _ = builder.WithImplementationFactory(registration.ImplementationFactory);
+
+            // Check if the lifetime allows instances, otherwise the builder will throw an exception.
+            if (registration.ImplementationInstance != null && builder.Registration.Lifetime.AllowImplementationInstances)
+                _ = builder.WithImplementationInstance(registration.ImplementationInstance);
+
+            foreach (var _ImplementationType in registration.ImplementationTypes)
+                _ = builder.AddImplementationType(_ImplementationType);
+
+            if (registration.Lifetime != builder.Registration.Lifetime)
+                _ = builder.WithLifetime(registration.Lifetime);
+        }
+
         void IRegistrationBehaviour.UpdateBehaviour(Registration registration, IRegistrationBehaviour behaviour)
         {
             if (this.m_AllowBehaviourToChange) registration.Behaviour = behaviour;
