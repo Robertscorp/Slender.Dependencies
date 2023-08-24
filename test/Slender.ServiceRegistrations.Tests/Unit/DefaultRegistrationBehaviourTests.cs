@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Moq;
+using Slender.ServiceRegistrations.Tests.Support;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -103,7 +104,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             var _MockRegistrationBehaviour = new Mock<IRegistrationBehaviour>();
 
-            var _Builder = new RegistrationBuilder(typeof(object), RegistrationLifetime.Scoped());
+            var _Builder = new RegistrationBuilder(typeof(object), TestRegistrationLifetime.Instance(true));
             _Builder.Registration.AllowScannedImplementationTypes = true;
             _Builder.Registration.Behaviour = RegistrationBehaviour_MultipleTypes;
             _Builder.Registration.ImplementationFactory = factory => string.Empty;
@@ -116,7 +117,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             {
                 Behaviour = _MockRegistrationBehaviour.Object,
                 ImplementationTypes = new List<Type> { typeof(object), typeof(int) },
-                Lifetime = RegistrationLifetime.Singleton()
+                Lifetime = TestRegistrationLifetime.Instance(true)
             };
 
             // Act
@@ -236,7 +237,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _Registration = Registration_Empty;
 
             // Act
-            _Registration.Behaviour.UpdateLifetime(_Registration, RegistrationLifetime.Singleton());
+            _Registration.Behaviour.UpdateLifetime(_Registration, TestRegistrationLifetime.Instance(true));
 
             // Assert
             _ = _Registration.Should().BeEquivalentTo(Registration_Empty);

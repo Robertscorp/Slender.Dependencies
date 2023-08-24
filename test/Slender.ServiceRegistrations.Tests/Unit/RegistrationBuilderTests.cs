@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Moq;
+using Slender.ServiceRegistrations.Tests.Support;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -15,7 +16,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         private readonly Mock<Action> m_MockOnScanForImplementationTypes = new();
         private readonly Mock<IRegistrationBehaviour> m_MockRegistrationBehaviour = new();
 
-        private readonly RegistrationBuilder m_Builder = new(typeof(IService), RegistrationLifetime.Scoped());
+        private readonly RegistrationBuilder m_Builder = new(typeof(IService), TestRegistrationLifetime.Instance(true));
 
         #endregion Fields
 
@@ -24,7 +25,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public RegistrationBuilderTests()
         {
             _ = this.m_Builder.OnScanForImplementations = this.m_MockOnScanForImplementationTypes.Object;
-            _ = this.m_Builder.Registration.Lifetime = RegistrationLifetime.Singleton();
+            _ = this.m_Builder.Registration.Lifetime = TestRegistrationLifetime.Instance(true);
             _ = this.m_Builder.Registration.Behaviour = this.m_MockRegistrationBehaviour.Object;
         }
 
@@ -156,7 +157,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void WithImplementationInstance_LifetimeDoesNotSupportImplementationInstances_ThrowsArgumentException()
         {
             // Arrange
-            this.m_Builder.Registration.Lifetime = RegistrationLifetime.Scoped();
+            this.m_Builder.Registration.Lifetime = TestRegistrationLifetime.Instance(false);
 
             // Act
             var _Expected = Record.Exception(() => this.m_Builder.WithImplementationInstance(string.Empty));
@@ -192,7 +193,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void WithLifetime_AnyLifetime_AddsLifetimeThroughRegistrationBehaviour()
         {
             // Arrange
-            var _Lifetime = RegistrationLifetime.Transient();
+            var _Lifetime = TestRegistrationLifetime.Instance(true);
 
             // Act
             _ = this.m_Builder.WithLifetime(_Lifetime);
@@ -237,7 +238,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 ImplementationFactory = serviceFactory => string.Empty,
                 ImplementationInstance = string.Empty,
                 ImplementationTypes = new List<Type> { typeof(IService) },
-                Lifetime = RegistrationLifetime.Transient()
+                Lifetime = TestRegistrationLifetime.Instance(true)
             };
 
             // Act
