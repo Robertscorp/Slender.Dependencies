@@ -59,6 +59,9 @@ namespace Slender.ServiceRegistrations
             // Try and restore the original behaviour, if the incoming behaviour allows that.
             _ = builder.WithRegistrationBehaviour(registration.Behaviour);
 
+            // Update the Lifetime before the ImplementationInstances to ensure we handle instances properly.
+            _ = builder.WithLifetime(registration.Lifetime);
+
             if (registration.AllowScannedImplementationTypes)
                 _ = builder.ScanForImplementations();
 
@@ -71,9 +74,6 @@ namespace Slender.ServiceRegistrations
 
             foreach (var _ImplementationType in registration.ImplementationTypes)
                 _ = builder.AddImplementationType(_ImplementationType);
-
-            if (registration.Lifetime != builder.Registration.Lifetime)
-                _ = builder.WithLifetime(registration.Lifetime);
         }
 
         void IRegistrationBehaviour.UpdateBehaviour(Registration registration, IRegistrationBehaviour behaviour)
