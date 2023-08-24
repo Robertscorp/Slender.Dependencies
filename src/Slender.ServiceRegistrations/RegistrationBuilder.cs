@@ -113,11 +113,19 @@ namespace Slender.ServiceRegistrations
         /// <param name="lifetime">The new service lifetime for the registered service.</param>
         /// <returns>Itself.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="lifetime"/> is null.</exception>
+        /// <remarks>
+        /// If the registered service's lifetime is updated and doesn't support implementation instances,
+        /// then the implementation instance will be cleared.
+        /// </remarks>
         public RegistrationBuilder WithLifetime(RegistrationLifetime lifetime)
         {
             if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
 
             this.Registration.Behaviour.UpdateLifetime(this.Registration, lifetime);
+
+            // If the current Lifetime doesn't support Implementation Instances, clear the instance.
+            if (!this.Registration.Lifetime.AllowImplementationInstances && this.Registration.ImplementationInstance != null)
+                this.Registration.ImplementationInstance = null;
 
             return this;
         }

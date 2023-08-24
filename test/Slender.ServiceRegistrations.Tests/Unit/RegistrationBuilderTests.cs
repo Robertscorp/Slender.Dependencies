@@ -203,6 +203,42 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
+        [Fact]
+        public void WithLifetime_LifetimeSupportsImplementationInstances_RetainsAssignedImplementationInstance()
+        {
+            // Arrange
+            this.m_Builder.Registration.Lifetime = TestRegistrationLifetime.Instance(true);
+            this.m_Builder.Registration.ImplementationInstance = 123;
+
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.UpdateLifetime(It.IsAny<Registration>(), It.IsAny<RegistrationLifetime>()))
+                    .Callback((Registration r, RegistrationLifetime l) => r.Lifetime = l);
+
+            // Act
+            _ = this.m_Builder.WithLifetime(TestRegistrationLifetime.Instance(true));
+
+            // Assert
+            _ = this.m_Builder.Registration.ImplementationInstance.Should().Be(123);
+        }
+
+        [Fact]
+        public void WithLifetime_LifetimeDoesntSupportImplementationInstances_ClearsAssignedImplementationInstance()
+        {
+            // Arrange
+            this.m_Builder.Registration.Lifetime = TestRegistrationLifetime.Instance(true);
+            this.m_Builder.Registration.ImplementationInstance = 123;
+
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.UpdateLifetime(It.IsAny<Registration>(), It.IsAny<RegistrationLifetime>()))
+                    .Callback((Registration r, RegistrationLifetime l) => r.Lifetime = l);
+
+            // Act
+            _ = this.m_Builder.WithLifetime(TestRegistrationLifetime.Instance(false));
+
+            // Assert
+            _ = this.m_Builder.Registration.ImplementationInstance.Should().BeNull();
+        }
+
         #endregion WithLifetime Tests
 
         #region - - - - - - WithRegistration Tests - - - - - -
