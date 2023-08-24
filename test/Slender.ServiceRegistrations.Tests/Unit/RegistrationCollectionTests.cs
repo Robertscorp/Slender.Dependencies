@@ -3,6 +3,8 @@ using Moq;
 using Slender.AssemblyScanner;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace Slender.ServiceRegistrations.Tests.Unit
@@ -28,6 +30,10 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_MockAssemblyScan
                     .Setup(mock => mock.Types)
                     .Returns(() => this.m_AssemblyTypes.ToArray());
+
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.AddImplementationType(It.IsAny<Registration>(), It.IsAny<Type>()))
+                    .Callback((Registration r, Type t) => r.ImplementationTypes.Add(t));
 
             _ = this.m_MockRegistrationBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()))
@@ -153,6 +159,136 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #endregion GetUnresolvedRequiredPackages Tests
 
+        #region - - - - - - MergeRegistrationCollection Tests - - - - - -
+
+        [Fact]
+        public void MergeRegistrationCollection_MergingWithExistingRegistration_UsesExistingRegistrationsBehaviourToMerge()
+        {
+            // Arrange
+            var _Builder = default(RegistrationBuilder);
+            var _Collection = new RegistrationCollection().AddScoped(typeof(object));
+            var _Registration = _Collection.Single();
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(object), r => _Builder = r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_Collection);
+
+            // Assert
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.MergeRegistration(_Builder, _Registration), Times.Once());
+            this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void MergeRegistrationCollection_MergingWithNoExistingRegistration_AddsIncomingRegistration()
+        {
+            // Arrange
+            var _Collection = new RegistrationCollection().AddScoped(typeof(object));
+            var _Expected = new[] { new Registration(typeof(object)) { Lifetime = RegistrationLifetime.Scoped() } };
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_Collection);
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void MergeRegistrationCollection_MergingWithExistingImplementations_AddsIncomingImplementationsFirst()
+        {
+            // Arrange
+            var _MockOtherAssemblyScan = new Mock<IAssemblyScan>();
+            _ = _MockOtherAssemblyScan
+                    .Setup(mock => mock.Types)
+                    .Returns(new[] { typeof(ServiceImplementation2) });
+
+            var _Collection = new RegistrationCollection().AddAssemblyScan(_MockOtherAssemblyScan.Object);
+            var _Expected = new Registration(typeof(IService))
+            {
+                AllowScannedImplementationTypes = true,
+                ImplementationTypes = new List<Type>() { typeof(ServiceImplementation2), typeof(ServiceImplementation) },
+                Lifetime = RegistrationLifetime.Scoped()
+            };
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_Collection);
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+
+            // Assert
+            _ = this.m_RegistrationCollection.Single().Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void MergeRegistrationCollection_MergingWithNoExistingImplementations_AddsIncomingImplementations()
+        {
+            // Arrange
+            var _MockOtherAssemblyScan = new Mock<IAssemblyScan>();
+            _ = _MockOtherAssemblyScan
+                    .Setup(mock => mock.Types)
+                    .Returns(new[] { typeof(ServiceImplementation2) });
+
+            var _Collection = new RegistrationCollection().AddAssemblyScan(_MockOtherAssemblyScan.Object);
+            var _Expected = new Registration(typeof(IService))
+            {
+                AllowScannedImplementationTypes = true,
+                ImplementationTypes = new List<Type>() { typeof(ServiceImplementation2) },
+                Lifetime = RegistrationLifetime.Scoped()
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_Collection);
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations());
+
+            // Assert
+            _ = this.m_RegistrationCollection.Single().Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void MergeRegistrationCollection_MergingRequiredPackages_AddsIncomingRequiredPackages()
+        {
+            // Arrange
+            var _RegistrationCollection = new RegistrationCollection().AddRequiredPackage("PackageA").AddRequiredPackage("PackageB");
+
+            _ = this.m_RegistrationCollection.AddRequiredPackage("PackageA").AddRequiredPackage("PackageC");
+
+            var _Expected = new[] { "PackageA", "PackageC", "PackageA", "PackageB" };
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_RegistrationCollection);
+
+            // Assert
+            _ = this.m_RegistrationCollection.GetUnresolvedRequiredPackages().Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void MergeRegistrationCollection_MergingAssemblyScans_AddsIncomingAssemblyScan()
+        {
+            // Arrange
+            var _AssemblyScanInfo = typeof(RegistrationCollection).GetField("m_AssemblyScan", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+            var _MockAssemblyScan = new Mock<IAssemblyScan>();
+            _ = _MockAssemblyScan
+                    .Setup(mock => mock.Types)
+                    .Returns(new[] { typeof(ServiceImplementation2) });
+
+            var _RegistrationCollection = new RegistrationCollection().AddAssemblyScan(_MockAssemblyScan.Object);
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            var _Expected = AssemblyScan.Empty().AddAssemblyScan(this.m_MockAssemblyScan.Object).AddAssemblyScan(_MockAssemblyScan.Object);
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_RegistrationCollection);
+
+            // Assert
+            _ = _AssemblyScanInfo.GetValue(this.m_RegistrationCollection).Should().BeEquivalentTo(_Expected);
+
+        }
+
+        #endregion MergeRegistrationCollection Tests
+
         #region - - - - - - Validate Tests - - - - - -
 
         [Fact]
@@ -242,5 +378,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
     public interface IService { }
 
     public class ServiceImplementation : IService { }
+
+    public class ServiceImplementation2 : IService { }
 
 }

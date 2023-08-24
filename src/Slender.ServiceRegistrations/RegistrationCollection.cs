@@ -3,6 +3,7 @@ using Slender.ServiceRegistrations.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -69,7 +70,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblyScan(IAssemblyScan assemblyScan)
         {
-            new ImplementationScanVisitor { OnServiceAndImplementationsFound = this.AddImplementations }.VisitAssemblyScan(assemblyScan);
+            new ImplementationScanVisitor { OnServiceAndImplementationsFound = (s, i) => this.AddImplementations(s, i, true) }.VisitAssemblyScan(assemblyScan);
 
             this.m_AssemblyScan = AssemblyScan.Empty().AddAssemblyScan(this.m_AssemblyScan).AddAssemblyScan(assemblyScan);
 
@@ -99,50 +100,18 @@ namespace Slender.ServiceRegistrations
                 _ = builder.AddImplementationType(_Implementation);
         }
 
-        private void AddImplementations(Type service, IEnumerable<Type> implementations)
+        private void AddImplementations(Type service, IEnumerable<Type> implementations, bool existingImplementationsFirst)
         {
             if (this.m_BuildersByType.TryGetValue(service, out var _Builder) && _Builder.Registration.AllowScannedImplementationTypes)
                 this.AddImplementations(_Builder, implementations);
             else if (this.m_ImplementationsByType.TryGetValue(service, out var _Implementations))
-                this.m_ImplementationsByType[service] = _Implementations.Union(implementations);
+                this.m_ImplementationsByType[service]
+                    = existingImplementationsFirst
+                        ? _Implementations.Union(implementations)
+                        : implementations.Union(_Implementations);
+
             else
                 this.m_ImplementationsByType.Add(service, implementations);
-        }
-
-        /// <summary>
-        /// Adds all registered services from the specified <paramref name="registrations"/> to this registration collection.
-        /// </summary>
-        /// <param name="registrations">The registration collection to add.</param>
-        /// <returns>Itself.</returns>
-        /// <exception cref="Exception">Thrown when a service in the specified <paramref name="registrations"/> already exists in this registration collection.</exception>
-        public RegistrationCollection AddRegistrationCollection(RegistrationCollection registrations)
-        {
-            var _Builders = registrations.m_BuildersByType.Values;
-
-            var _ExistingBuilders = _Builders.Where(b => this.m_BuildersByType.ContainsKey(b.Registration.ServiceType)).ToList();
-            if (_ExistingBuilders.Any())
-            {
-                var _StringBuilder = new StringBuilder(64);
-                _ = _StringBuilder.AppendLine("Could not add Registration Collection, as the following services are already registered:");
-
-                foreach (var _Builder in _ExistingBuilders)
-                    _ = _StringBuilder.Append(" - ").AppendLine(_Builder.Registration.ServiceType.Name);
-
-                _ = _StringBuilder.AppendLine().AppendLine("This may be caused by scanning for registrations, or the order of your registrations.");
-
-                throw new Exception(_StringBuilder.ToString());
-            }
-
-            foreach (var _Builder in _Builders)
-                this.AddBuilder(_Builder);
-
-            foreach (var _ImplementationsByType in registrations.m_ImplementationsByType)
-                this.AddImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value);
-
-            foreach (var _RequiredPackage in registrations.m_RequiredPackages)
-                _ = this.AddRequiredPackage(_RequiredPackage);
-
-            return this.AddAssemblyScan(registrations.m_AssemblyScan);
         }
 
         /// <summary>
@@ -225,6 +194,47 @@ namespace Slender.ServiceRegistrations
 
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<RegistrationBuilder>)this).GetEnumerator();
+
+        /// <summary>
+        /// Merges all registered services from the specified <paramref name="registrationCollection"/> into this registration collection.
+        /// </summary>
+        /// <param name="registrationCollection">The registration collection to merge in.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>
+        /// If a service has been registered in both collections, then the incoming service will be merged into the existing service by invoking 
+        /// <see cref="IRegistrationBehaviour.MergeRegistration(RegistrationBuilder, Registration)"/> on the existing service's behaviour.<br/>
+        /// <br/>
+        /// Additionally, the specified <paramref name="registrationCollection"/> will be completely cleared as a part of the merge process.
+        /// </remarks>
+        public RegistrationCollection MergeRegistrationCollection(RegistrationCollection registrationCollection)
+        {
+            foreach (var _BuilderByType in registrationCollection.m_BuildersByType)
+                if (this.m_BuildersByType.TryGetValue(_BuilderByType.Key, out var _Builder))
+                    _Builder.Registration.Behaviour.MergeRegistration(_Builder, _BuilderByType.Value.Registration);
+
+                else
+                    this.AddBuilder(_BuilderByType.Value);
+
+            // Take on the incoming registrationCollection's implementations first, so that
+            // they will be the first to be registered when scanning is enabled.
+            // This has been done because it's assumed that this collection is expanding on the
+            // services and implementations of the collection being merged in.
+
+            foreach (var _ImplementationsByType in registrationCollection.m_ImplementationsByType)
+                this.AddImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value, existingImplementationsFirst: false);
+
+            foreach (var _RequiredPackage in registrationCollection.m_RequiredPackages)
+                _ = this.AddRequiredPackage(_RequiredPackage);
+
+            _ = this.AddAssemblyScan(registrationCollection.m_AssemblyScan);
+
+            registrationCollection.m_AssemblyScan = AssemblyScan.Empty();
+            registrationCollection.m_BuildersByType.Clear();
+            registrationCollection.m_ImplementationsByType.Clear();
+            registrationCollection.m_RequiredPackages.Clear();
+
+            return this;
+        }
 
         /// <summary>
         /// Informs the RegistrationCollection that the external package no longer needs to be tracked.
