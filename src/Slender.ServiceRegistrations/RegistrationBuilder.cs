@@ -29,14 +29,14 @@ namespace Slender.ServiceRegistrations
 
         internal Action OnScanForImplementations { get; set; }
 
-        internal Registration Registration { get; }
+        internal Registration Registration { get; private set; }
 
         #endregion Properties
 
         #region - - - - - - Methods - - - - - -
 
         /// <summary>
-        /// Adds <typeparamref name="TImplementation"/> as an implementation type to the the registered service.
+        /// Adds <typeparamref name="TImplementation"/> as an implementation type to the registered service.
         /// </summary>
         /// <typeparam name="TImplementation">The implementation type that implements or inherits the registered service.</typeparam>
         /// <returns>Itself.</returns>
@@ -44,7 +44,7 @@ namespace Slender.ServiceRegistrations
             => this.AddImplementationType(typeof(TImplementation));
 
         /// <summary>
-        /// Adds an implementation type to the the registered service.
+        /// Adds an implementation type to the registered service.
         /// </summary>
         /// <param name="implementationType">The type that implements or inherits the registered service.</param>
         /// <returns>Itself.</returns>
@@ -53,7 +53,8 @@ namespace Slender.ServiceRegistrations
         {
             if (implementationType is null) throw new ArgumentNullException(nameof(implementationType));
 
-            this.Registration.Behaviour.AddImplementationType(this.Registration, implementationType);
+            if (!this.Registration.ImplementationTypes.Contains(implementationType))
+                this.Registration.Behaviour.AddImplementationType(this.Registration, implementationType);
 
             return this;
         }
@@ -112,11 +113,47 @@ namespace Slender.ServiceRegistrations
         /// <param name="lifetime">The new service lifetime for the registered service.</param>
         /// <returns>Itself.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="lifetime"/> is null.</exception>
+        /// <remarks>
+        /// If the registered service's lifetime is updated and doesn't support implementation instances,
+        /// then the implementation instance will be cleared.
+        /// </remarks>
         public RegistrationBuilder WithLifetime(RegistrationLifetime lifetime)
         {
             if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
 
             this.Registration.Behaviour.UpdateLifetime(this.Registration, lifetime);
+
+            // If the current Lifetime doesn't support Implementation Instances, clear the instance.
+            if (!this.Registration.Lifetime.AllowImplementationInstances && this.Registration.ImplementationInstance != null)
+                this.Registration.ImplementationInstance = null;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the details of the registered service.
+        /// </summary>
+        /// <param name="newRegistration">The new details for the registered service.</param>
+        /// <param name="oldRegistration">The old details of the registered service.</param>
+        /// <returns>Itself.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="newRegistration"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="newRegistration"/> has a different <see cref="Registration.ServiceType"/>.</exception>
+        public RegistrationBuilder WithRegistration(Registration newRegistration, out Registration oldRegistration)
+        {
+            if (newRegistration is null) throw new ArgumentNullException(nameof(newRegistration));
+            if (newRegistration.ServiceType != this.Registration.ServiceType) throw new ArgumentException("Cannot change the type of the registered service.");
+
+            oldRegistration = this.Registration;
+
+            this.Registration = new Registration(this.Registration.ServiceType)
+            {
+                AllowScannedImplementationTypes = newRegistration.AllowScannedImplementationTypes,
+                Behaviour = newRegistration.Behaviour,
+                ImplementationFactory = newRegistration.ImplementationFactory,
+                ImplementationInstance = newRegistration.ImplementationInstance,
+                ImplementationTypes = newRegistration.ImplementationTypes,
+                Lifetime = newRegistration.Lifetime
+            };
 
             return this;
         }

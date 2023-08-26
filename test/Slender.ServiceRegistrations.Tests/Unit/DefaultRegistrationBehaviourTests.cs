@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Moq;
+using Slender.ServiceRegistrations.Tests.Support;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -94,6 +95,47 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         }
 
         #endregion AllowScannedImplementationTypes Tests
+
+        #region - - - - - - MergeRegistration Tests - - - - - -
+
+        [Fact]
+        public void MergeRegistration_AnyRegistration_TakesOnIncomingRegistrationAndAttemptsToOverrideWithExisting()
+        {
+            // Arrange
+            var _MockRegistrationBehaviour = new Mock<IRegistrationBehaviour>();
+
+            var _Builder = new RegistrationBuilder(typeof(object), TestRegistrationLifetime.Instance(true));
+            _Builder.Registration.AllowScannedImplementationTypes = true;
+            _Builder.Registration.Behaviour = RegistrationBehaviour_MultipleTypes;
+            _Builder.Registration.ImplementationFactory = factory => string.Empty;
+            _Builder.Registration.ImplementationInstance = string.Empty;
+            _Builder.Registration.ImplementationTypes = new List<Type> { typeof(object), typeof(string) };
+
+            var _InitialRegistration = _Builder.Registration;
+
+            var _Registration = new Registration(typeof(object))
+            {
+                Behaviour = _MockRegistrationBehaviour.Object,
+                ImplementationTypes = new List<Type> { typeof(object), typeof(int) },
+                Lifetime = TestRegistrationLifetime.Instance(true)
+            };
+
+            // Act
+            _Builder.Registration.Behaviour.MergeRegistration(_Builder, _Registration);
+
+            // Assert
+            _ = _Builder.Registration.Should().BeEquivalentTo(_Registration);
+
+            _MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(_Builder.Registration, typeof(string)));
+            _MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(_Builder.Registration));
+            _MockRegistrationBehaviour.Verify(mock => mock.UpdateBehaviour(_Builder.Registration, _InitialRegistration.Behaviour));
+            _MockRegistrationBehaviour.Verify(mock => mock.UpdateImplementationFactory(_Builder.Registration, _InitialRegistration.ImplementationFactory));
+            _MockRegistrationBehaviour.Verify(mock => mock.UpdateImplementationInstance(_Builder.Registration, _InitialRegistration.ImplementationInstance));
+            _MockRegistrationBehaviour.Verify(mock => mock.UpdateLifetime(_Builder.Registration, _InitialRegistration.Lifetime));
+            _MockRegistrationBehaviour.VerifyNoOtherCalls();
+        }
+
+        #endregion MergeRegistration Tests
 
         #region - - - - - - UpdateBehaviour Tests - - - - - -
 
@@ -195,7 +237,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _Registration = Registration_Empty;
 
             // Act
-            _Registration.Behaviour.UpdateLifetime(_Registration, RegistrationLifetime.Singleton());
+            _Registration.Behaviour.UpdateLifetime(_Registration, TestRegistrationLifetime.Instance(true));
 
             // Assert
             _ = _Registration.Should().BeEquivalentTo(Registration_Empty);

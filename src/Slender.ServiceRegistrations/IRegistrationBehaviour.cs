@@ -25,6 +25,13 @@ namespace Slender.ServiceRegistrations
         void AllowScannedImplementationTypes(Registration registration);
 
         /// <summary>
+        /// Merges the specified <paramref name="registration"/> into the registered service.
+        /// </summary>
+        /// <param name="builder">The builder for the registered service to update.</param>
+        /// <param name="registration">The registered service being merged in.</param>
+        void MergeRegistration(RegistrationBuilder builder, Registration registration);
+
+        /// <summary>
         /// Changes the registration behaviour of the registered service.
         /// </summary>
         /// <param name="registration">The registration to update.</param>
