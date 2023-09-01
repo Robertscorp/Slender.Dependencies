@@ -190,7 +190,15 @@ namespace Slender.ServiceRegistrations
             => new ReadOnlyCollection<string>(this.m_RequiredPackages);
 
         IEnumerator<Registration> IEnumerable<Registration>.GetEnumerator()
-            => this.m_BuildersByType.Values.Select(b => b.Registration).GetEnumerator();
+            => this.m_BuildersByType
+                .Values
+                .Select(b => b.Registration)
+                .Where(r => !r.ServiceType.IsGenericTypeDefinition
+                            || !r.AllowScannedImplementationTypes
+                            || r.ImplementationFactory != null
+                            || r.ImplementationInstance != null
+                            || r.ImplementationTypes.Any())
+                .GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<RegistrationBuilder>)this).GetEnumerator();

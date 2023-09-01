@@ -226,11 +226,25 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         #region - - - - - - GetEnumerator Tests - - - - - -
 
         [Fact]
+        public void GetEnumerator_EmptyNonGenericService_GetsIncludedInEnumerator()
+            => this.m_RegistrationCollection
+                .AddScoped(typeof(IService))
+                .Should()
+                .BeEquivalentTo(new[] { new Registration(typeof(IService)) { Lifetime = RegistrationLifetime.Scoped() } });
+
+        [Fact]
         public void GetEnumerator_OpenGenericServiceWithOnlyAllowScan_DoesNotGetIncludedInEnumerator()
             => this.m_RegistrationCollection
                 .AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations())
                 .Should()
                 .BeEquivalentTo(Array.Empty<Registration>());
+
+        [Fact]
+        public void GetEnumerator_EmptyOpenGenericService_GetsIncludedInEnumerator()
+            => this.m_RegistrationCollection
+                .AddScoped(typeof(IGenericService<>))
+                .Should()
+                .BeEquivalentTo(new[] { new Registration(typeof(IGenericService<>)) { Lifetime = RegistrationLifetime.Scoped() } });
 
         [Fact]
         public void GetEnumerator_OpenGenericServiceWithImplementationType_GetsIncludedInEnumerator()
@@ -241,35 +255,47 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 {
                     new Registration(typeof(IGenericService<>))
                     {
-                        ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) }
+                        ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
+                        Lifetime = RegistrationLifetime.Scoped()
                     }
                 });
 
         [Fact]
         public void GetEnumerator_OpenGenericServiceWithImplementationInstance_GetsIncludedInEnumerator()
             => this.m_RegistrationCollection
-                .AddScoped(typeof(IGenericService<>), r => r.WithImplementationInstance(string.Empty))
+                .AddSingleton(typeof(IGenericService<>), r => r.WithImplementationInstance(string.Empty))
                 .Should()
                 .BeEquivalentTo(new[]
                 {
                     new Registration(typeof(IGenericService<>))
                     {
-                        ImplementationInstance = string.Empty
+                        ImplementationInstance = string.Empty,
+                        Lifetime = RegistrationLifetime.Singleton()
                     }
                 });
 
         [Fact]
         public void GetEnumerator_OpenGenericServiceWithImplementationFactory_GetsIncludedInEnumerator()
-            => this.m_RegistrationCollection
-                .AddScoped(typeof(IGenericService<>), r => r.WithImplementationFactory(serviceFactory => string.Empty))
-                .Should()
-                .BeEquivalentTo(new[]
+        {
+            // Arrange
+            var _Factory = (Func<ServiceFactory, object>)(serviceFactory => string.Empty);
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.WithImplementationFactory(_Factory));
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<>))
                 {
-                    new Registration(typeof(IGenericService<>))
-                    {
-                        ImplementationFactory = serviceFactory => string.Empty
-                    }
-                });
+                    ImplementationFactory = _Factory,
+                    Lifetime = RegistrationLifetime.Scoped()
+                }
+            };
+
+            // Act
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
 
         #endregion GetEnumerator Tests
 
