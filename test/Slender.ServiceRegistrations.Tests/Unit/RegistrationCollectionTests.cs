@@ -59,6 +59,93 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         }
 
         [Fact]
+        public void AddAssemblyScan_AddingClosedGenericImplementationWithOpenGenericService_RegistersClosedGenericService()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Clear();
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<object>))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>{ typeof(ClosedGenericImplementation) }
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void AddAssemblyScan_AddingClosedGenericImplementationsOverMultipleScansWithOpenGenericService_RegistersClosedGenericService()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Clear();
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            var _AssemblyScan = new Mock<IAssemblyScan>();
+            _ = _AssemblyScan
+                    .Setup(mock => mock.Types)
+                    .Returns(new[] { typeof(ClosedGenericImplementation2) });
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<object>))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>
+                    {
+                        typeof(ClosedGenericImplementation),
+                        typeof(ClosedGenericImplementation2)
+                    }
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddAssemblyScan(_AssemblyScan.Object);
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void AddAssemblyScan_AddingOpenGenericImplementationWithOpenGenericService_RegistersImplementationAgainstOpenGenericService()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Clear();
+            this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<>))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>{ typeof(OpenGenericImplementation<>) }
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
         public void AddAssemblyScan_AddingEmptyScanWithRegistrationThatAllowsScannedImplementations_DoesNothing()
         {
             // Arrange
@@ -75,43 +162,12 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #endregion AddAssemblyScan Tests
 
-        #region - - - - - - AddScopedService Tests - - - - - -
-
-        [Fact]
-        public void AddScopedService_AddingRegistrationWithAllowScanAndMatchingPreScannedImplementations_AddsRegistrationAndImplementations()
-        {
-            // Arrange
-            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
-
-            // Act
-            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
-
-            // Assert
-            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Registration>(), typeof(ServiceImplementation)));
-            this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public void AddScopedService_AddingRegistrationWithAllowScanAndNoPreScannedImplementations_AddsRegistration()
-        {
-            // Arrange
-
-            // Act
-            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
-
-            // Assert
-            this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
-        }
-
-        #endregion AddScopedService Tests
-
         #region - - - - - - ConfigureService Tests - - - - - -
 
         [Fact]
         public void ConfigureService_EnablingAllowScanOnRegistrationWithPreScannedImplementations_EnablesAllowScanAndAddsImplementations()
         {
             // Arrange
-
             _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
 
@@ -138,7 +194,84 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
+        [Fact]
+        public void ConfigureService_EnablingAllowScanOnOpenGenericRegistrationWithClosedGenericImplementations_RegistersClosedGenericService()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Clear();
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<object>))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)}
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.ConfigureService(typeof(IGenericService<>), r => r.ScanForImplementations());
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
         #endregion ConfigureService Tests
+
+        #region - - - - - - GetEnumerator Tests - - - - - -
+
+        [Fact]
+        public void GetEnumerator_OpenGenericServiceWithOnlyAllowScan_DoesNotGetIncludedInEnumerator()
+            => this.m_RegistrationCollection
+                .AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations())
+                .Should()
+                .BeEquivalentTo(Array.Empty<Registration>());
+
+        [Fact]
+        public void GetEnumerator_OpenGenericServiceWithImplementationType_GetsIncludedInEnumerator()
+            => this.m_RegistrationCollection
+                .AddScoped(typeof(IGenericService<>), r => r.AddImplementationType(typeof(OpenGenericImplementation<>)))
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    new Registration(typeof(IGenericService<>))
+                    {
+                        ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) }
+                    }
+                });
+
+        [Fact]
+        public void GetEnumerator_OpenGenericServiceWithImplementationInstance_GetsIncludedInEnumerator()
+            => this.m_RegistrationCollection
+                .AddScoped(typeof(IGenericService<>), r => r.WithImplementationInstance(string.Empty))
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    new Registration(typeof(IGenericService<>))
+                    {
+                        ImplementationInstance = string.Empty
+                    }
+                });
+
+        [Fact]
+        public void GetEnumerator_OpenGenericServiceWithImplementationFactory_GetsIncludedInEnumerator()
+            => this.m_RegistrationCollection
+                .AddScoped(typeof(IGenericService<>), r => r.WithImplementationFactory(serviceFactory => string.Empty))
+                .Should()
+                .BeEquivalentTo(new[]
+                {
+                    new Registration(typeof(IGenericService<>))
+                    {
+                        ImplementationFactory = serviceFactory => string.Empty
+                    }
+                });
+
+        #endregion GetEnumerator Tests
 
         #region - - - - - - GetUnresolvedRequiredPackages Tests - - - - - -
 
@@ -287,6 +420,62 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         }
 
+        [Fact]
+        public void MergeRegistrationCollection_MergeOpenGenericServiceIntoAlreadyRegisteredClosedGenericImplementation_RegistersClosedGenericService()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Clear();
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            var _RegistrationCollection = new RegistrationCollection().AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations());
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<object>))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) }
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_RegistrationCollection);
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void MergeRegistrationCollection_MergeClosedGenericImplementationIntoAlreadyRegisteredOpenGenericService_RegistersClosedGenericService()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Clear();
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            var _RegistrationCollection = new RegistrationCollection().AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations());
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IGenericService<object>))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) }
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_RegistrationCollection);
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
         #endregion MergeRegistrationCollection Tests
 
         #region - - - - - - Validate Tests - - - - - -
@@ -375,7 +564,15 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
     }
 
+    public class ClosedGenericImplementation : IGenericService<object> { }
+
+    public class ClosedGenericImplementation2 : IGenericService<object> { }
+
+    public interface IGenericService<TGeneric> { }
+
     public interface IService { }
+
+    public class OpenGenericImplementation<TGeneric> : IGenericService<TGeneric> { }
 
     public class ServiceImplementation : IService { }
 

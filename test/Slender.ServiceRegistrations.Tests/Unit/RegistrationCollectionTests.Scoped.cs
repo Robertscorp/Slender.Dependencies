@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Moq;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -115,6 +116,32 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Assert
             _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void AddScoped_AddingServiceWithAllowScanAndMatchingPreScannedImplementations_AddsRegistrationAndImplementations()
+        {
+            // Arrange
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+
+            // Act
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+
+            // Assert
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Registration>(), typeof(ServiceImplementation)));
+            this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void AddScoped_AddingServiceWithAllowScanAndNoPreScannedImplementations_AddsRegistration()
+        {
+            // Arrange
+
+            // Act
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+
+            // Assert
+            this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion AddScoped Tests
