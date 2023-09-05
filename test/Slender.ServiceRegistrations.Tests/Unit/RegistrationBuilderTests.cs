@@ -119,6 +119,23 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
+        [Fact]
+        public void ScanForImplementations_BehaviourPreventsScanning_DoesNotScanForImplementations()
+        {
+            // Arrange
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()))
+                    .Callback((Registration r) => r.AllowScannedImplementationTypes = false);
+
+            // Act
+            _ = this.m_Builder.ScanForImplementations();
+
+            // Assert
+            this.m_MockOnScanForImplementationTypes.Verify(mock => mock.Invoke(), Times.Never());
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(this.m_Builder.Registration), Times.Once());
+            this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
+        }
+
         #endregion ScanForImplementations Tests
 
         #region - - - - - - WithImplementationFactory Tests - - - - - -

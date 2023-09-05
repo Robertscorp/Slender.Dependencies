@@ -125,10 +125,11 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
 
             // Act
-            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object).ScanForImplementations());
 
             // Assert
             this.m_MockRegistrationBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Registration>(), typeof(ServiceImplementation)));
+            this.m_MockRegistrationBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()));
             this.m_MockRegistrationBehaviour.VerifyNoOtherCalls();
         }
 
