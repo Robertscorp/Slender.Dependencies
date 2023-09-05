@@ -106,9 +106,12 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         #region - - - - - - ScanForImplementations Tests - - - - - -
 
         [Fact]
-        public void ScanForImplementations_OnInvocation_AllowsScanningOnRegistrationBehaviourAndScans()
+        public void ScanForImplementations_BehaviourEnablesScanning_ScansForImplementations()
         {
             // Arrange
+            _ = this.m_MockRegistrationBehaviour
+                    .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Registration>()))
+                    .Callback((Registration r) => r.AllowScannedImplementationTypes = true);
 
             // Act
             _ = this.m_Builder.ScanForImplementations();
