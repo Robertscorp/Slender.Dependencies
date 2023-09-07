@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Slender.AssemblyScanner" Version="1.0.0" />
+    <PackageReference Include="Slender.AssemblyScanner" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
