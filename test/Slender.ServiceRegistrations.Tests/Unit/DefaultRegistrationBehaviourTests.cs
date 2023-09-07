@@ -104,12 +104,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             var _MockRegistrationBehaviour = new Mock<IRegistrationBehaviour>();
 
-            var _Builder = new RegistrationBuilder(typeof(object), TestRegistrationLifetime.Instance(true));
+            var _Builder = new RegistrationBuilder(typeof(object));
             _Builder.Registration.AllowScannedImplementationTypes = true;
             _Builder.Registration.Behaviour = RegistrationBehaviour_MultipleTypes;
             _Builder.Registration.ImplementationFactory = factory => string.Empty;
             _Builder.Registration.ImplementationInstance = string.Empty;
             _Builder.Registration.ImplementationTypes = new List<Type> { typeof(object), typeof(string) };
+            _Builder.Registration.Lifetime = TestRegistrationLifetime.Instance(true);
 
             var _InitialRegistration = _Builder.Registration;
 

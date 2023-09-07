@@ -10,6 +10,14 @@ namespace Slender.ServiceRegistrations
     public class Registration
     {
 
+        #region - - - - - - Fields - - - - - -
+
+        private bool? m_AllowScannedImplementationTypes;
+        private IRegistrationBehaviour m_Behaviour;
+        private RegistrationLifetime m_Lifetime;
+
+        #endregion Fields
+
         #region - - - - - - Constructors - - - - - -
 
         internal Registration(Type serviceType)
@@ -22,12 +30,20 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// Determines if scanned implementation types are allowed to be added to the registered service.
         /// </summary>
-        public bool AllowScannedImplementationTypes { get; set; }
+        public bool AllowScannedImplementationTypes
+        {
+            get => this.m_AllowScannedImplementationTypes ?? this.LinkedRegistration?.AllowScannedImplementationTypes ?? false;
+            set => this.m_AllowScannedImplementationTypes = value;
+        }
 
         /// <summary>
         /// The configuration behaviour of the registered service.
         /// </summary>
-        public IRegistrationBehaviour Behaviour { get; set; } = DefaultRegistrationBehaviour.Instance();
+        public IRegistrationBehaviour Behaviour
+        {
+            get => this.m_Behaviour ?? this.LinkedRegistration?.Behaviour ?? DefaultRegistrationBehaviour.Instance();
+            set => this.m_Behaviour = value;
+        }
 
         /// <summary>
         /// A factory which produces an instance that can be assigned to a reference of the registered service.
@@ -47,7 +63,13 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// The lifetime of the registered service.
         /// </summary>
-        public RegistrationLifetime Lifetime { get; set; }
+        public RegistrationLifetime Lifetime
+        {
+            get => this.m_Lifetime ?? this.LinkedRegistration?.Lifetime;
+            set => this.m_Lifetime = value;
+        }
+
+        internal Registration LinkedRegistration { get; set; }
 
         /// <summary>
         /// The type of the registered service.

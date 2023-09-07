@@ -16,7 +16,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         private readonly Mock<Action> m_MockOnScanForImplementationTypes = new();
         private readonly Mock<IRegistrationBehaviour> m_MockRegistrationBehaviour = new();
 
-        private readonly RegistrationBuilder m_Builder = new(typeof(IService), TestRegistrationLifetime.Instance(true));
+        private readonly RegistrationBuilder m_Builder = new(typeof(IService));
 
         #endregion Fields
 
@@ -303,6 +303,51 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Assert
             _ = _Actual.Should().Be(_Initial);
             _ = this.m_Builder.Registration.Should().BeEquivalentTo(_Expected);
+        }
+
+        [Fact]
+        public void WithRegistration_IncomingServiceHasLinkedService_ServiceIsNotLinked()
+        {
+            // Arrange
+            var _Registration = new Registration(typeof(IService)) { LinkedRegistration = new Registration(typeof(IService)) };
+
+            // Act
+            _ = this.m_Builder.WithRegistration(_Registration, out _);
+
+            // Assert
+            _ = this.m_Builder.Registration.LinkedRegistration.Should().BeNull();
+        }
+
+        [Fact]
+        public void WithRegistration_ExistingServiceHasLinkedService_ServiceLinkIsNotRetained()
+        {
+            // Arrange
+            this.m_Builder.Registration.LinkedRegistration = new Registration(typeof(IService));
+
+            var _Registration = new Registration(typeof(IService));
+
+            // Act
+            _ = this.m_Builder.WithRegistration(_Registration, out _);
+
+            // Assert
+            _ = this.m_Builder.Registration.LinkedRegistration.Should().BeNull();
+        }
+
+        [Fact]
+        public void WithRegistration_BothRegistrationsHaveLinkedRegistration_IncomingLinkedRegistrationOverridesExisting()
+        {
+            // Arrange
+            this.m_Builder.Registration.LinkedRegistration = new Registration(typeof(IService));
+
+            var _Expected = new Registration(typeof(IService));
+
+            var _Registration = new Registration(typeof(IService)) { LinkedRegistration = _Expected };
+
+            // Act
+            _ = this.m_Builder.WithRegistration(_Registration, out _);
+
+            // Assert
+            _ = this.m_Builder.Registration.LinkedRegistration.Should().Be(_Expected);
         }
 
         #endregion WithRegistration Tests
