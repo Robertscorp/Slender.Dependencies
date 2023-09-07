@@ -122,7 +122,9 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddScoped_AddingServiceWithAllowScanAndMatchingPreScannedImplementations_AddsRegistrationAndImplementations()
         {
             // Arrange
-            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_MockAssemblyScan.Object);
+            this.m_AssemblyTypes.Add(typeof(ServiceImplementation));
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
             _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object).ScanForImplementations());
