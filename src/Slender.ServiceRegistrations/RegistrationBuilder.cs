@@ -60,10 +60,10 @@ namespace Slender.ServiceRegistrations
                     _ = this.AddImplementationType(_ImplementationType);
 
             else if (existingImplementationsFirst)
-                this.ScannedImplementationTypes.InsertRange(0, implementationTypes);
+                this.ScannedImplementationTypes.AddRange(implementationTypes);
 
             else
-                this.ScannedImplementationTypes.AddRange(implementationTypes);
+                this.ScannedImplementationTypes.InsertRange(0, implementationTypes);
         }
 
         /// <summary>

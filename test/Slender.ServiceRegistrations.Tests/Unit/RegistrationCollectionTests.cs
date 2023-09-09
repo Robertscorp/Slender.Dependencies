@@ -399,6 +399,41 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
         }
 
+        [Fact]
+        public void AddService_AddingUnregisteredServiceWithImplementationsOverMultipleAssembles_ImplementationsAddedInScanOrder()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Add(typeof(ServiceImplementation));
+            this.m_AssemblyTypes2.Add(typeof(ServiceImplementation2));
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan2);
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>()
+                    {
+                        typeof(ServiceImplementation),
+                        typeof(ServiceImplementation2)
+                    },
+                    Lifetime = RegistrationLifetime.Scoped()
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection.AddService(
+                    typeof(IService),
+                    RegistrationLifetime.Scoped(),
+                    r => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object).ScanForImplementations());
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
+        }
+
         #endregion AddService Tests
 
         #region - - - - - - ConfigureService Tests - - - - - -
