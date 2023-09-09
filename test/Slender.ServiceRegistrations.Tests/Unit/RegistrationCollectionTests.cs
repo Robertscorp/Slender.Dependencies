@@ -4,7 +4,6 @@ using Slender.AssemblyScanner;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Xunit;
 
 namespace Slender.ServiceRegistrations.Tests.Unit
@@ -16,6 +15,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         #region - - - - - - Fields - - - - - -
 
         private readonly Mock<IRegistrationBehaviour> m_MockRegistrationBehaviour = new();
+        private readonly Mock<Action<RegistrationCollection, Type>> m_MockScanningBehaviour = new();
 
         private readonly IAssemblyScan m_AssemblyScan;
         private readonly IAssemblyScan m_AssemblyScan2;
@@ -787,27 +787,6 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         }
 
         [Fact]
-        public void MergeRegistrationCollection_MergingAssemblyScans_AddsIncomingAssemblyScan()
-        {
-            // Arrange
-            this.m_AssemblyTypes2.Add(typeof(ServiceImplementation2));
-
-            var _AssemblyScanInfo = typeof(RegistrationCollection).GetField("m_AssemblyScan", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            var _RegistrationCollection = new RegistrationCollection().AddAssemblyScan(this.m_AssemblyScan2);
-
-            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = AssemblyScan.Empty().AddAssemblyScan(this.m_AssemblyScan).AddAssemblyScan(this.m_AssemblyScan2);
-
-            // Act
-            _ = this.m_RegistrationCollection.MergeRegistrationCollection(_RegistrationCollection);
-
-            // Assert
-            _ = _AssemblyScanInfo.GetValue(this.m_RegistrationCollection).Should().BeEquivalentTo(_Expected);
-
-        }
-
-        [Fact]
         public void MergeRegistrationCollection_MergeOpenGenericServiceIntoUnregisteredClosedGenericService_RegistersClosedGenericService()
         {
             // Arrange
@@ -874,7 +853,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _RegistrationCollection = new RegistrationCollection().AddAssemblyScan(this.m_AssemblyScan);
             _ = _RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations());
 
-            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<object>), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<object>), r => r.ScanForImplementations());
 
             var _Expected = new[]
             {
@@ -963,6 +942,73 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         }
 
         #endregion MergeRegistrationCollection Tests
+
+        #region - - - - - - ScanForUnregisteredServices Tests - - - - - -
+
+        [Fact]
+        public void ScanForUnregisteredServices_ManuallyRegisteredService_NotScanned()
+        {
+            // Arrange
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => { });
+
+            // Act
+            _ = this.m_RegistrationCollection.ScanForUnregisteredServices(this.m_MockScanningBehaviour.Object);
+
+            // Assert
+            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void ScanForUnregisteredServices_AutomaticallyRegisteredService_NotScanned()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations());
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
+
+            // Act
+            _ = this.m_RegistrationCollection.ScanForUnregisteredServices(this.m_MockScanningBehaviour.Object);
+
+            // Assert
+            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void ScanForUnregisteredServices_UnregisteredService_IsScanned()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
+
+            // Act
+            _ = this.m_RegistrationCollection.ScanForUnregisteredServices(this.m_MockScanningBehaviour.Object);
+
+            // Assert
+            this.m_MockScanningBehaviour.Verify(mock => mock.Invoke(this.m_RegistrationCollection, typeof(IGenericService<object>)), Times.Once());
+            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void ScanForUnregisteredServices_InvokedMultipleTimesWithUnregisteredService_IsScannedMultipleTimes()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
+
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
+
+            // Act
+            _ = this.m_RegistrationCollection.ScanForUnregisteredServices(this.m_MockScanningBehaviour.Object);
+            _ = this.m_RegistrationCollection.ScanForUnregisteredServices(this.m_MockScanningBehaviour.Object);
+            _ = this.m_RegistrationCollection.ScanForUnregisteredServices(this.m_MockScanningBehaviour.Object);
+
+            // Assert
+            this.m_MockScanningBehaviour.Verify(mock => mock.Invoke(this.m_RegistrationCollection, typeof(IGenericService<object>)), Times.Exactly(3));
+            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
+        }
+
+        #endregion ScanForUnregisteredServices Tests
 
         #region - - - - - - Validate Tests - - - - - -
 

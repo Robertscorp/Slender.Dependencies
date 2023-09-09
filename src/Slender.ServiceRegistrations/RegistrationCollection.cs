@@ -1,5 +1,4 @@
 ﻿using Slender.AssemblyScanner;
-using Slender.ServiceRegistrations.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,8 +21,6 @@ namespace Slender.ServiceRegistrations
         private readonly Dictionary<Type, RegistrationBuilder> m_BuildersByType = new Dictionary<Type, RegistrationBuilder>();
         private readonly List<string> m_RequiredPackages = new List<string>();
         private readonly Dictionary<Type, RegistrationBuilder> m_UnregisteredBuildersByType = new Dictionary<Type, RegistrationBuilder>();
-
-        private IAssemblyScan m_AssemblyScan = AssemblyScan.Empty();
 
         #endregion Fields
 
@@ -70,8 +67,14 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblyScan(IAssemblyScan assemblyScan)
         {
-            new ImplementationScanVisitor
+            new ServiceAndImplementationScanVisitor
             {
+                OnServiceFound = service =>
+                {
+                    if (!this.m_BuildersByType.ContainsKey(service)
+                        && !this.m_UnregisteredBuildersByType.ContainsKey(service))
+                        this.AddUnregisteredService(new RegistrationBuilder(service));
+                },
                 OnServiceAndImplementationsFound = (service, implementations) =>
                 {
                     if (!this.m_BuildersByType.TryGetValue(service, out var _Builder)
@@ -84,8 +87,6 @@ namespace Slender.ServiceRegistrations
                     _Builder.AddScannedImplementationTypes(implementations, true);
                 }
             }.VisitAssemblyScan(assemblyScan);
-
-            this.m_AssemblyScan = AssemblyScan.Empty().AddAssemblyScan(this.m_AssemblyScan).AddAssemblyScan(assemblyScan);
 
             return this;
         }
@@ -280,9 +281,6 @@ namespace Slender.ServiceRegistrations
             foreach (var _RequiredPackage in registrationCollection.m_RequiredPackages)
                 _ = this.AddRequiredPackage(_RequiredPackage);
 
-            _ = this.AddAssemblyScan(registrationCollection.m_AssemblyScan);
-
-            registrationCollection.m_AssemblyScan = AssemblyScan.Empty();
             registrationCollection.m_BuildersByType.Clear();
             registrationCollection.m_UnregisteredBuildersByType.Clear();
             registrationCollection.m_RequiredPackages.Clear();
@@ -308,12 +306,8 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         public RegistrationCollection ScanForUnregisteredServices(Action<RegistrationCollection, Type> serviceRegistrationAction)
         {
-            new ServiceScanVisitor
-            {
-                OnServiceFound = t => { if (!this.m_BuildersByType.ContainsKey(t)) serviceRegistrationAction(this, t); }
-            }.VisitAssemblyScan(this.m_AssemblyScan);
-
-            this.m_AssemblyScan = AssemblyScan.Empty();
+            foreach (var _UnregisteredService in this.m_UnregisteredBuildersByType.Keys.ToList())
+                serviceRegistrationAction(this, _UnregisteredService);
 
             return this;
         }
