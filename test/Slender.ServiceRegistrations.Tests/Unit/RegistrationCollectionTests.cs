@@ -195,11 +195,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            var _AssemblyScan = new Mock<IAssemblyScan>();
-            _ = _AssemblyScan
-                    .Setup(mock => mock.Types)
-                    .Returns(new[] { typeof(ClosedGenericImplementation2) });
+            this.m_AssemblyTypes2.Add(typeof(ClosedGenericImplementation2));
 
             var _Expected = new[]
             {
@@ -219,7 +215,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Act
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
             _ = this.m_RegistrationCollection.AddScoped(typeof(IGenericService<>), r => r.ScanForImplementations().WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object));
-            _ = this.m_RegistrationCollection.AddAssemblyScan(_AssemblyScan.Object);
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan2);
 
             // Assert
             _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
@@ -718,13 +714,9 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ServiceImplementation));
+            this.m_AssemblyTypes2.Add(typeof(ServiceImplementation2));
 
-            var _MockOtherAssemblyScan = new Mock<IAssemblyScan>();
-            _ = _MockOtherAssemblyScan
-                    .Setup(mock => mock.Types)
-                    .Returns(new[] { typeof(ServiceImplementation2) });
-
-            var _Collection = new RegistrationCollection().AddAssemblyScan(_MockOtherAssemblyScan.Object);
+            var _Collection = new RegistrationCollection().AddAssemblyScan(this.m_AssemblyScan2);
             var _Expected = new[]
             {
                 new Registration(typeof(IService))
@@ -749,12 +741,9 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void MergeRegistrationCollection_MergingWithNoExistingImplementations_AddsIncomingImplementations()
         {
             // Arrange
-            var _MockOtherAssemblyScan = new Mock<IAssemblyScan>();
-            _ = _MockOtherAssemblyScan
-                    .Setup(mock => mock.Types)
-                    .Returns(new[] { typeof(ServiceImplementation2) });
+            this.m_AssemblyTypes.Add(typeof(ServiceImplementation2));
 
-            var _Collection = new RegistrationCollection().AddAssemblyScan(_MockOtherAssemblyScan.Object);
+            var _Collection = new RegistrationCollection().AddAssemblyScan(this.m_AssemblyScan);
             var _Expected = new Registration(typeof(IService))
             {
                 AllowScannedImplementationTypes = true,
