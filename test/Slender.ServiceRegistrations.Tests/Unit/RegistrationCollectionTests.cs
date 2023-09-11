@@ -474,6 +474,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void ConfigureService_ConfigureUnregisteredService_ThrowsInvalidOperationException()
         {
             // Arrange
+            this.m_AssemblyTypes.Add(typeof(IService));
+
             _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
