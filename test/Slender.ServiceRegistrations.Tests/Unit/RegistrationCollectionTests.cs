@@ -436,16 +436,9 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         [Fact]
         public void ConfigureService_NotSpecifyingServiceType_ThrowsArgumentNullException()
-        {
-            // Arrange
-            _ = this.m_RegistrationCollection.AddService(typeof(IService), RegistrationLifetime.Scoped(), null);
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_RegistrationCollection.ConfigureService(null, r => { }));
-
-            // Assert
-            _ = _Exception.Should().BeOfType<ArgumentNullException>();
-        }
+            => Record
+                .Exception(() => this.m_RegistrationCollection.ConfigureService(null, r => { }))
+                .Should().BeOfType<ArgumentNullException>();
 
         [Fact]
         public void ConfigureService_NotSpecifyingConfigurationAction_ThrowsArgumentNullException()
