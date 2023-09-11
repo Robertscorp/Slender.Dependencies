@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Slender.ServiceRegistrations
 {
@@ -11,17 +12,8 @@ namespace Slender.ServiceRegistrations
 
         #region - - - - - - Constructors - - - - - -
 
-        /// <summary>
-        /// Creates a new instance of a registered service builder.
-        /// </summary>
-        /// <param name="serviceType">The type of service being registered.</param>
-        /// <param name="lifetime">The lifetime of the registered service.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceType"/> or <paramref name="lifetime"/> is null.</exception>
-        public RegistrationBuilder(Type serviceType, RegistrationLifetime lifetime)
-            => this.Registration = new Registration(serviceType ?? throw new ArgumentNullException(nameof(serviceType)))
-            {
-                Lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime)),
-            };
+        internal RegistrationBuilder(Type serviceType)
+            => this.Registration = new Registration(serviceType ?? throw new ArgumentNullException(nameof(serviceType)));
 
         #endregion Constructors
 
@@ -30,6 +22,8 @@ namespace Slender.ServiceRegistrations
         internal Action OnScanForImplementations { get; set; }
 
         internal Registration Registration { get; private set; }
+
+        internal List<Type> ScannedImplementationTypes { get; } = new List<Type>();
 
         #endregion Properties
 
@@ -59,6 +53,19 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
+        internal void AddScannedImplementationTypes(IEnumerable<Type> implementationTypes, bool existingImplementationsFirst)
+        {
+            if (this.Registration.AllowScannedImplementationTypes)
+                foreach (var _ImplementationType in implementationTypes)
+                    _ = this.AddImplementationType(_ImplementationType);
+
+            else if (existingImplementationsFirst)
+                this.ScannedImplementationTypes.AddRange(implementationTypes);
+
+            else
+                this.ScannedImplementationTypes.InsertRange(0, implementationTypes);
+        }
+
         /// <summary>
         /// Allows scanned implementations of this service to be added to the registered service.
         /// </summary>
@@ -68,7 +75,17 @@ namespace Slender.ServiceRegistrations
         public RegistrationBuilder ScanForImplementations()
         {
             this.Registration.Behaviour.AllowScannedImplementationTypes(this.Registration);
-            this.OnScanForImplementations?.Invoke();
+
+            if (this.Registration.AllowScannedImplementationTypes)
+            {
+                foreach (var _ImplementationType in this.ScannedImplementationTypes)
+                    _ = this.AddImplementationType(_ImplementationType);
+
+                this.ScannedImplementationTypes.Clear();
+
+                this.OnScanForImplementations?.Invoke();
+            }
+
             return this;
         }
 
@@ -145,6 +162,12 @@ namespace Slender.ServiceRegistrations
 
             oldRegistration = this.Registration;
 
+            // If both new and old registrations were auto-registered, then retain the link from the new registration.
+            var _LinkedRegistration = newRegistration.LinkedRegistration != null
+                                        && oldRegistration.LinkedRegistration != null
+                                            ? newRegistration.LinkedRegistration
+                                            : null;
+
             this.Registration = new Registration(this.Registration.ServiceType)
             {
                 AllowScannedImplementationTypes = newRegistration.AllowScannedImplementationTypes,
@@ -152,7 +175,8 @@ namespace Slender.ServiceRegistrations
                 ImplementationFactory = newRegistration.ImplementationFactory,
                 ImplementationInstance = newRegistration.ImplementationInstance,
                 ImplementationTypes = newRegistration.ImplementationTypes,
-                Lifetime = newRegistration.Lifetime
+                Lifetime = newRegistration.Lifetime,
+                LinkedRegistration = _LinkedRegistration
             };
 
             return this;

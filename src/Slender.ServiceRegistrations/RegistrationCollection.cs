@@ -1,5 +1,4 @@
 ﻿using Slender.AssemblyScanner;
-using Slender.ServiceRegistrations.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,10 +19,8 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Fields - - - - - -
 
         private readonly Dictionary<Type, RegistrationBuilder> m_BuildersByType = new Dictionary<Type, RegistrationBuilder>();
-        private readonly Dictionary<Type, IEnumerable<Type>> m_ImplementationsByType = new Dictionary<Type, IEnumerable<Type>>();
         private readonly List<string> m_RequiredPackages = new List<string>();
-
-        private IAssemblyScan m_AssemblyScan = AssemblyScan.Empty();
+        private readonly Dictionary<Type, RegistrationBuilder> m_UnregisteredBuildersByType = new Dictionary<Type, RegistrationBuilder>();
 
         #endregion Fields
 
@@ -70,48 +67,54 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         public RegistrationCollection AddAssemblyScan(IAssemblyScan assemblyScan)
         {
-            new ImplementationScanVisitor { OnServiceAndImplementationsFound = (s, i) => this.AddImplementations(s, i, true) }.VisitAssemblyScan(assemblyScan);
+            new ServiceAndImplementationScanVisitor
+            {
+                OnServiceFound = service =>
+                {
+                    if (!this.m_BuildersByType.ContainsKey(service)
+                        && !this.m_UnregisteredBuildersByType.ContainsKey(service))
+                        this.AddUnregisteredService(new RegistrationBuilder(service));
+                },
+                OnServiceAndImplementationsFound = (service, implementations) =>
+                {
+                    if (!this.m_BuildersByType.TryGetValue(service, out var _Builder)
+                        && !this.m_UnregisteredBuildersByType.TryGetValue(service, out _Builder))
+                    {
+                        _Builder = new RegistrationBuilder(service);
+                        this.AddUnregisteredService(_Builder);
+                    }
 
-            this.m_AssemblyScan = AssemblyScan.Empty().AddAssemblyScan(this.m_AssemblyScan).AddAssemblyScan(assemblyScan);
+                    _Builder.AddScannedImplementationTypes(implementations, true);
+                }
+            }.VisitAssemblyScan(assemblyScan);
 
             return this;
         }
 
         private void AddBuilder(RegistrationBuilder builder)
         {
-            builder.OnScanForImplementations = () => this.AddImplementations(builder);
-
             this.m_BuildersByType.Add(builder.Registration.ServiceType, builder);
-            this.AddImplementations(builder);
-        }
 
-        private void AddImplementations(RegistrationBuilder builder)
-        {
-            if (this.m_ImplementationsByType.TryGetValue(builder.Registration.ServiceType, out var _Implementations) && builder.Registration.AllowScannedImplementationTypes)
-            {
-                this.AddImplementations(builder, _Implementations);
-                _ = this.m_ImplementationsByType.Remove(builder.Registration.ServiceType);
-            }
-        }
+            if (builder.Registration.ServiceType.IsGenericTypeDefinition)
+                builder.OnScanForImplementations = () =>
+                {
+                    var _UnregisteredClosedGenericServices
+                        = this.m_UnregisteredBuildersByType
+                            .Values
+                            .Where(b => b.Registration.ServiceType.GUID == builder.Registration.ServiceType.GUID)
+                            .ToList();
 
-        private void AddImplementations(RegistrationBuilder builder, IEnumerable<Type> implementations)
-        {
-            foreach (var _Implementation in implementations)
-                _ = builder.AddImplementationType(_Implementation);
-        }
+                    foreach (var _UnregisteredClosedGenericService in _UnregisteredClosedGenericServices)
+                    {
+                        _ = this.m_UnregisteredBuildersByType.Remove(_UnregisteredClosedGenericService.Registration.ServiceType);
+                        this.AddUnregisteredService(_UnregisteredClosedGenericService);
+                    }
+                };
 
-        private void AddImplementations(Type service, IEnumerable<Type> implementations, bool existingImplementationsFirst)
-        {
-            if (this.m_BuildersByType.TryGetValue(service, out var _Builder) && _Builder.Registration.AllowScannedImplementationTypes)
-                this.AddImplementations(_Builder, implementations);
-            else if (this.m_ImplementationsByType.TryGetValue(service, out var _Implementations))
-                this.m_ImplementationsByType[service]
-                    = existingImplementationsFirst
-                        ? _Implementations.Union(implementations)
-                        : implementations.Union(_Implementations);
-
-            else
-                this.m_ImplementationsByType.Add(service, implementations);
+            // If the service already allows scanning, then force a scan.
+            // This should only happen for merged builders.
+            if (builder.Registration.AllowScannedImplementationTypes)
+                builder.OnScanForImplementations?.Invoke();
         }
 
         /// <summary>
@@ -121,7 +124,7 @@ namespace Slender.ServiceRegistrations
         /// <param name="lifetime">The lifetime of the service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> or <paramref name="lifetime"/> is null.</exception>
-        /// <exception cref="Exception">Thrown when there is already a registered service of the specified <paramref name="type"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when there is already a registered service of the specified <paramref name="type"/>.</exception>
         /// <returns>Itself.</returns>
         /// <remarks>
         /// If the specified <paramref name="configurationAction"/> invokes <see cref="RegistrationBuilder.ScanForImplementations"/>, then any
@@ -136,13 +139,22 @@ namespace Slender.ServiceRegistrations
             if (lifetime is null) throw new ArgumentNullException(nameof(lifetime));
 
             if (this.m_BuildersByType.ContainsKey(type))
-                throw new Exception($"{type.Name} has already been registered. Use {nameof(ConfigureService)} instead.");
+                throw new InvalidOperationException($"{type.Name} has already been registered. Use {nameof(ConfigureService)} instead.");
 
-            var _Builder = new RegistrationBuilder(type, lifetime);
+            if (this.m_UnregisteredBuildersByType.TryGetValue(type, out var _Builder))
+                _ = this.m_UnregisteredBuildersByType.Remove(type);
+
+            else
+                _Builder = new RegistrationBuilder(type);
+
+            _Builder.Registration.Lifetime = lifetime;
+
+            // Add the builder before configuring it. This is because if the service is an open
+            // generic and there are already unregistered closed generic services, the unregistered
+            // closed generic services may be registered during the configuration action.
+            this.AddBuilder(_Builder);
 
             configurationAction?.Invoke(_Builder);
-
-            this.AddBuilder(_Builder);
 
             return this;
         }
@@ -167,15 +179,43 @@ namespace Slender.ServiceRegistrations
             return this;
         }
 
+        private void AddUnregisteredService(RegistrationBuilder builder)
+        {
+            // If this is a closed generic service, and there is a registered open generic service
+            // that allows scanning for implementations, then register this closed generic service
+            // as an actual service, instead of as an unregistered service.
+            if (builder.Registration.ServiceType.IsGenericType
+                && !builder.Registration.ServiceType.IsGenericTypeDefinition
+                && this.m_BuildersByType.TryGetValue(
+                    builder.Registration.ServiceType.GetGenericTypeDefinition(),
+                    out var _OpenGenericBuilder)
+                && _OpenGenericBuilder.Registration.AllowScannedImplementationTypes)
+            {
+                // The unregistered closed generic service should behave like the open generic service.
+                builder.Registration.LinkedRegistration = _OpenGenericBuilder.Registration;
+
+                this.m_BuildersByType.Add(builder.Registration.ServiceType, builder.ScanForImplementations());
+            }
+
+            else
+                this.m_UnregisteredBuildersByType.Add(builder.Registration.ServiceType, builder);
+        }
+
         /// <summary>
         /// Configures a registered service.
         /// </summary>
         /// <param name="type">The type of service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> or <paramref name="configurationAction"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when there is not a registered service of the specified <paramref name="type"/>.</exception>
         /// <returns>Itself.</returns>
         public RegistrationCollection ConfigureService(Type type, Action<RegistrationBuilder> configurationAction)
         {
-            _ = this.m_BuildersByType.TryGetValue(type, out var _Registration);
+            if (type is null) throw new ArgumentNullException(nameof(type));
+            if (configurationAction is null) throw new ArgumentNullException(nameof(configurationAction));
+
+            if (!this.m_BuildersByType.TryGetValue(type, out var _Registration))
+                throw new InvalidOperationException($"{type.Name} has not been registered. Use {nameof(AddService)} instead.");
 
             configurationAction(_Registration);
 
@@ -190,7 +230,15 @@ namespace Slender.ServiceRegistrations
             => new ReadOnlyCollection<string>(this.m_RequiredPackages);
 
         IEnumerator<Registration> IEnumerable<Registration>.GetEnumerator()
-            => this.m_BuildersByType.Values.Select(b => b.Registration).GetEnumerator();
+            => this.m_BuildersByType
+                .Values
+                .Select(b => b.Registration)
+                .Where(r => !r.ServiceType.IsGenericTypeDefinition
+                            || !r.AllowScannedImplementationTypes
+                            || r.ImplementationFactory != null
+                            || r.ImplementationInstance != null
+                            || r.ImplementationTypes.Any())
+                .GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<RegistrationBuilder>)this).GetEnumerator();
@@ -213,24 +261,29 @@ namespace Slender.ServiceRegistrations
                     _Builder.Registration.Behaviour.MergeRegistration(_Builder, _BuilderByType.Value.Registration);
 
                 else
+                {
+                    if (this.m_UnregisteredBuildersByType.TryGetValue(_BuilderByType.Key, out _Builder))
+                    {
+                        _ = this.m_UnregisteredBuildersByType.Remove(_BuilderByType.Key);
+                        _BuilderByType.Value.AddScannedImplementationTypes(_Builder.ScannedImplementationTypes, true);
+                    }
+
                     this.AddBuilder(_BuilderByType.Value);
+                }
 
-            // Take on the incoming registrationCollection's implementations first, so that
-            // they will be the first to be registered when scanning is enabled.
-            // This has been done because it's assumed that this collection is expanding on the
-            // services and implementations of the collection being merged in.
+            foreach (var _BuilderByType in registrationCollection.m_UnregisteredBuildersByType)
+                if (this.m_BuildersByType.TryGetValue(_BuilderByType.Key, out var _Builder)
+                    || this.m_UnregisteredBuildersByType.TryGetValue(_BuilderByType.Key, out _Builder))
+                    _Builder.AddScannedImplementationTypes(_BuilderByType.Value.ScannedImplementationTypes, false);
 
-            foreach (var _ImplementationsByType in registrationCollection.m_ImplementationsByType)
-                this.AddImplementations(_ImplementationsByType.Key, _ImplementationsByType.Value, existingImplementationsFirst: false);
+                else
+                    this.AddUnregisteredService(_BuilderByType.Value);
 
             foreach (var _RequiredPackage in registrationCollection.m_RequiredPackages)
                 _ = this.AddRequiredPackage(_RequiredPackage);
 
-            _ = this.AddAssemblyScan(registrationCollection.m_AssemblyScan);
-
-            registrationCollection.m_AssemblyScan = AssemblyScan.Empty();
             registrationCollection.m_BuildersByType.Clear();
-            registrationCollection.m_ImplementationsByType.Clear();
+            registrationCollection.m_UnregisteredBuildersByType.Clear();
             registrationCollection.m_RequiredPackages.Clear();
 
             return this;
@@ -254,12 +307,8 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         public RegistrationCollection ScanForUnregisteredServices(Action<RegistrationCollection, Type> serviceRegistrationAction)
         {
-            new ServiceScanVisitor
-            {
-                OnServiceFound = t => { if (!this.m_BuildersByType.ContainsKey(t)) serviceRegistrationAction(this, t); }
-            }.VisitAssemblyScan(this.m_AssemblyScan);
-
-            this.m_AssemblyScan = AssemblyScan.Empty();
+            foreach (var _UnregisteredService in this.m_UnregisteredBuildersByType.Keys.ToList())
+                serviceRegistrationAction(this, _UnregisteredService);
 
             return this;
         }
