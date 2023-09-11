@@ -571,6 +571,36 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
         }
 
+        [Fact]
+        public void ConfigureService_ConfiguringManuallyRegisteredServiceToFindExistingManuallyAddedImplementation_DoesNothing()
+        {
+            // Arrange
+            this.m_AssemblyTypes.Add(typeof(ServiceImplementation));
+
+            _ = this.m_RegistrationCollection.AddScoped(typeof(IService), r => r.AddImplementationType<ServiceImplementation>());
+            _ = this.m_RegistrationCollection.AddAssemblyScan(this.m_AssemblyScan);
+
+            var _Expected = new[]
+            {
+                new Registration(typeof(IService))
+                {
+                    AllowScannedImplementationTypes = true,
+                    Behaviour = this.m_MockRegistrationBehaviour.Object,
+                    ImplementationTypes = new List<Type>() { typeof(ServiceImplementation) },
+                    Lifetime = RegistrationLifetime.Scoped()
+                }
+            };
+
+            // Act
+            _ = this.m_RegistrationCollection
+                    .ConfigureService(typeof(IService), r
+                        => r.WithRegistrationBehaviour(this.m_MockRegistrationBehaviour.Object)
+                            .ScanForImplementations());
+
+            // Assert
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+        }
+
         #endregion ConfigureService Tests
 
         #region - - - - - - GetEnumerator Tests - - - - - -
