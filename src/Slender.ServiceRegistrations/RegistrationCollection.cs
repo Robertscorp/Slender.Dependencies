@@ -206,6 +206,7 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         /// <param name="type">The type of service.</param>
         /// <param name="configurationAction">An action to configure the registered service.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="type"/> or <paramref name="configurationAction"/> is null.</exception>
         /// <exception cref="InvalidOperationException">Thrown when there is not a registered service of the specified <paramref name="type"/>.</exception>
         /// <returns>Itself.</returns>
         public RegistrationCollection ConfigureService(Type type, Action<RegistrationBuilder> configurationAction)
