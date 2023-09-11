@@ -710,7 +710,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         }
 
         [Fact]
-        public void MergeRegistrationCollection_MergingWithExistingImplementations_AddsIncomingImplementationsFirst()
+        public void MergeRegistrationCollection_MergingWithExistingImplementations_AddsIncomingImplementationsToExistingService()
         {
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ServiceImplementation));
@@ -722,7 +722,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Registration(typeof(IService))
                 {
                     AllowScannedImplementationTypes = true,
-                    ImplementationTypes = new List<Type>() { typeof(ServiceImplementation2), typeof(ServiceImplementation) },
+                    ImplementationTypes = new List<Type>() { typeof(ServiceImplementation), typeof(ServiceImplementation2) },
                     Lifetime = RegistrationLifetime.Scoped()
                 }
             };
@@ -734,7 +734,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_RegistrationCollection.MergeRegistrationCollection(_Collection);
 
             // Assert
-            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected);
+            _ = this.m_RegistrationCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
         }
 
         [Fact]
