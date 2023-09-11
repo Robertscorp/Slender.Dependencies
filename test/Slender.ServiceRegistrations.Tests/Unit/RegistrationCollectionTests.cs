@@ -113,7 +113,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 {
                     AllowScannedImplementationTypes = true,
                     Behaviour = this.m_MockRegistrationBehaviour.Object,
-                    ImplementationTypes = new List<Type>{ typeof(ClosedGenericImplementation) },
+                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = RegistrationLifetime.Scoped()
                 }
             };
@@ -163,7 +163,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 {
                     AllowScannedImplementationTypes = true,
                     Behaviour = this.m_MockRegistrationBehaviour.Object,
-                    ImplementationTypes = new List<Type>{ typeof(ClosedGenericImplementation) },
+                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = RegistrationLifetime.Scoped()
                 }
             };
@@ -239,7 +239,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 {
                     AllowScannedImplementationTypes = true,
                     Behaviour = this.m_MockRegistrationBehaviour.Object,
-                    ImplementationTypes = new List<Type>{ typeof(OpenGenericImplementation<>) },
+                    ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
                     Lifetime = RegistrationLifetime.Scoped()
                 }
             };
@@ -467,8 +467,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void ConfigureService_ConfigureNeverAddedService_ThrowsInvalidOperationException()
             => Record
-                .Exception(()
-                    => this.m_RegistrationCollection.ConfigureService(typeof(IService), r => { }))
+                .Exception(() => this.m_RegistrationCollection.ConfigureService(typeof(IService), r => { }))
                 .Should().BeOfType<InvalidOperationException>();
 
         [Fact]
@@ -559,14 +558,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 {
                     AllowScannedImplementationTypes = true,
                     Behaviour = this.m_MockRegistrationBehaviour.Object,
-                    ImplementationTypes = new List<Type>{ typeof(OpenGenericImplementation<>) },
+                    ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
                     Lifetime = RegistrationLifetime.Scoped()
                 },
                 new Registration(typeof(IGenericService<object>))
                 {
                     AllowScannedImplementationTypes = true,
                     Behaviour = this.m_MockRegistrationBehaviour.Object,
-                    ImplementationTypes = new List<Type>{ typeof(ClosedGenericImplementation) },
+                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = RegistrationLifetime.Singleton()
                 }
             };
