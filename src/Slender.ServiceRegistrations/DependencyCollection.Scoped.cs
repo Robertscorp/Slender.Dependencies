@@ -15,7 +15,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddScoped<TImplementation>()
-            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Scoped(), r => r.AddImplementationType<TImplementation>());
+            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Scoped(), d => d.AddImplementationType<TImplementation>());
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a scoped dependency with <typeparamref name="TImplementation"/> as the implementation type.
@@ -25,7 +25,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddScoped<TDependency, TImplementation>() where TImplementation : TDependency
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Scoped(), r => r.AddImplementationType<TImplementation>());
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Scoped(), d => d.AddImplementationType<TImplementation>());
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a scoped dependency with <paramref name="implementationFactory"/> as the mechanism of providing an implementation instance.
@@ -35,7 +35,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddScoped<TDependency>(Func<DependencyFactory, TDependency> implementationFactory) where TDependency : class
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Scoped(), r => r.WithImplementationFactory(implementationFactory));
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Scoped(), d => d.WithImplementationFactory(implementationFactory));
 
         /// <summary>
         /// Registers the specified <paramref name="type"/> as a scoped dependency.

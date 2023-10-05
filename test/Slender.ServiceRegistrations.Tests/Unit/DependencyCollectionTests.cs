@@ -65,7 +65,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
@@ -81,7 +81,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -105,7 +105,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -131,7 +131,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -155,7 +155,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -214,7 +214,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan2);
 
             // Assert
@@ -227,7 +227,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -251,7 +251,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddAssemblyScan_AddingEmptyScanWithDependencyThatAllowsScannedImplementations_DoesNothing()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
@@ -307,7 +307,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), d => d.ScanForImplementations());
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
@@ -337,7 +337,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -363,7 +363,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -389,7 +389,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -424,7 +424,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_DependencyCollection.AddDependency(
                     typeof(IDependency),
                     DependencyLifetime.Scoped(),
-                    r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+                    d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
@@ -480,11 +480,11 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => d.ScanForImplementations());
 
             // Assert
             this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
@@ -496,10 +496,10 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void ConfigureDependency_EnablingAllowScanOnDependencyWithNoPreScannedImplementations_EnablesAllowScan()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => d.ScanForImplementations());
 
             // Assert
             this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
@@ -527,7 +527,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d => d.ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -540,7 +540,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
             this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             var _Expected = new[]
@@ -577,7 +577,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.AddImplementationType<DependencyImplementation>());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.AddImplementationType<DependencyImplementation>());
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             var _Expected = new[]
@@ -615,7 +615,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void GetEnumerator_OpenGenericDependencyWithOnlyAllowScan_DoesNotGetIncludedInEnumerator()
             => this.m_DependencyCollection
-                .AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations())
+                .AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations())
                 .Should()
                 .BeEquivalentTo(Array.Empty<Dependency>());
 
@@ -629,7 +629,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void GetEnumerator_OpenGenericDependencyWithImplementationType_GetsIncludedInEnumerator()
             => this.m_DependencyCollection
-                .AddScoped(typeof(IGenericDependency<>), r => r.AddImplementationType(typeof(OpenGenericImplementation<>)))
+                .AddScoped(typeof(IGenericDependency<>), d => d.AddImplementationType(typeof(OpenGenericImplementation<>)))
                 .Should()
                 .BeEquivalentTo(new[]
                 {
@@ -643,7 +643,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void GetEnumerator_OpenGenericDependencyWithImplementationInstance_GetsIncludedInEnumerator()
             => this.m_DependencyCollection
-                .AddSingleton(typeof(IGenericDependency<>), r => r.WithImplementationInstance(string.Empty))
+                .AddSingleton(typeof(IGenericDependency<>), d => d.WithImplementationInstance(string.Empty))
                 .Should()
                 .BeEquivalentTo(new[]
                 {
@@ -660,7 +660,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             var _Factory = (Func<DependencyFactory, object>)(factory => string.Empty);
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithImplementationFactory(_Factory));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.WithImplementationFactory(_Factory));
 
             var _Expected = new[]
             {
@@ -751,7 +751,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_Collection);
@@ -776,7 +776,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_Collection);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Single().Should().BeEquivalentTo(_Expected);
@@ -805,7 +805,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            var _DependencyCollection = new DependencyCollection().AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            var _DependencyCollection = new DependencyCollection().AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
 
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
@@ -835,7 +835,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
 
             var _Expected = new[]
             {
@@ -864,9 +864,9 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.ScanForImplementations());
 
             var _Expected = new[]
             {
@@ -898,9 +898,9 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
 
             var _Expected = new[]
             {
@@ -948,7 +948,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
@@ -977,7 +977,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
@@ -1069,7 +1069,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_AbstractDependencyUnableToFindScannedImplementation_ThrowsException()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations());
 
             // Act
             var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
@@ -1082,7 +1082,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_NonAbstractDependencyUnableToFindScannedImplementation_ThrowsException()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(DependencyImplementation), r => r.ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(DependencyImplementation), d => d.ScanForImplementations());
 
             // Act
             var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());

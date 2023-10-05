@@ -349,7 +349,7 @@ namespace Slender.ServiceRegistrations
                     _ = _StringBuilder
                             .Append(" - ")
                             .Append(_Builder.Dependency.DependencyType.Name)
-                            .AppendLine($" ({string.Join(", ", _Builder.Dependency.ImplementationTypes.Where(r => r.IsAbstract).Select(r => r.Name))})");
+                            .AppendLine($" ({string.Join(", ", _Builder.Dependency.ImplementationTypes.Where(t => t.IsAbstract).Select(t => t.Name))})");
             }
 
             if (this.m_RequiredPackages.Any())

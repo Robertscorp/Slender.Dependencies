@@ -111,7 +111,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddTransient(typeof(IDependency), r => r.AddImplementationType<DependencyImplementation>());
+            _ = this.m_DependencyCollection.AddTransient(typeof(IDependency), d => d.AddImplementationType<DependencyImplementation>());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);

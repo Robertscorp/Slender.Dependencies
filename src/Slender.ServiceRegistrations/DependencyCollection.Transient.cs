@@ -15,7 +15,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddTransient<TImplementation>()
-            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Transient(), r => r.AddImplementationType<TImplementation>());
+            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Transient(), d => d.AddImplementationType<TImplementation>());
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a transient dependency with <typeparamref name="TImplementation"/> as the implementation type.
@@ -25,7 +25,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddTransient<TDependency, TImplementation>() where TImplementation : TDependency
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Transient(), r => r.AddImplementationType<TImplementation>());
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Transient(), d => d.AddImplementationType<TImplementation>());
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a transient dependency with <paramref name="implementationFactory"/> as the mechanism of providing an implementation instance.
@@ -35,7 +35,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddTransient<TDependency>(Func<DependencyFactory, TDependency> implementationFactory) where TDependency : class
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Transient(), r => r.WithImplementationFactory(implementationFactory));
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Transient(), d => d.WithImplementationFactory(implementationFactory));
 
         /// <summary>
         /// Registers the specified <paramref name="type"/> as a transient dependency.
