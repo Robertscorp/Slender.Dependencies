@@ -158,13 +158,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             // Arrange
             var _Dependency = new Dependency(typeof(object)) { Behaviour = DependencyBehaviour_DisableChange };
-            var _Behaviour = _Dependency.Behaviour;
+            var _DependencyBehaviour = _Dependency.Behaviour;
 
             // Act
             _Dependency.Behaviour.UpdateBehaviour(_Dependency, this.m_DependencyBehaviour);
 
             // Assert
-            _ = _Dependency.Behaviour.Should().Be(_Behaviour);
+            _ = _Dependency.Behaviour.Should().Be(_DependencyBehaviour);
         }
 
         #endregion UpdateBehaviour Tests

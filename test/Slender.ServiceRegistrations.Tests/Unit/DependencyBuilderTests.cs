@@ -364,13 +364,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void WithBehaviour_AnyBehaviour_UpdatesBehaviourThroughBehaviour()
         {
             // Arrange
-            var _Behaviour = new Mock<IDependencyBehaviour>().Object;
+            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
             // Act
-            _ = this.m_Builder.WithBehaviour(_Behaviour);
+            _ = this.m_Builder.WithBehaviour(_DependencyBehaviour);
 
             // Assert
-            this.m_MockDependencyBehaviour.Verify(mock => mock.UpdateBehaviour(this.m_Builder.Dependency, _Behaviour), Times.Once());
+            this.m_MockDependencyBehaviour.Verify(mock => mock.UpdateBehaviour(this.m_Builder.Dependency, _DependencyBehaviour), Times.Once());
             this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
