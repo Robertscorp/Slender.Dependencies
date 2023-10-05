@@ -16,7 +16,6 @@ namespace Slender.ServiceRegistrations
         private IDependencyBuilderBehaviour m_Behaviour;
         private DependencyLifetime m_Lifetime;
 
-
         #endregion Fields
 
         #region - - - - - - Constructors - - - - - -
