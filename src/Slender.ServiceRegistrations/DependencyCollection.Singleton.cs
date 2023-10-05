@@ -48,10 +48,10 @@ namespace Slender.ServiceRegistrations
             => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), r => r.WithImplementationFactory(implementationFactory));
 
         /// <summary>
-        /// Registers the specified <paramref name="implementationInstance"/> as the singleton instance for <typeparamref name="TDependency"/>.
+        /// Registers <typeparamref name="TDependency"/> as a singleton dependency with <paramref name="implementationInstance"/> as the implementation instance.
         /// </summary>
         /// <typeparam name="TDependency">The type of dependency.</typeparam>
-        /// <param name="implementationInstance">The instance to be used when resolving a <typeparamref name="TDependency"/> reference.</param>
+        /// <param name="implementationInstance">An instance of the dependency.</param>
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddSingleton<TDependency>(object implementationInstance)
