@@ -13,7 +13,7 @@ namespace Slender.ServiceRegistrations
         #region - - - - - - Fields - - - - - -
 
         private bool? m_AllowScannedImplementationTypes;
-        private IDependencyBuilderBehaviour m_Behaviour;
+        private IDependencyBehaviour m_Behaviour;
         private DependencyLifetime m_Lifetime;
 
         #endregion Fields
@@ -43,7 +43,7 @@ namespace Slender.ServiceRegistrations
         /// <summary>
         /// The configuration behaviour of the dependency.
         /// </summary>
-        public IDependencyBuilderBehaviour Behaviour
+        public IDependencyBehaviour Behaviour
         {
             get => this.m_Behaviour ?? this.LinkedDependency?.Behaviour ?? DefaultDependencyBehaviour.Instance();
             set => this.m_Behaviour = value;

@@ -7,7 +7,7 @@ namespace Slender.ServiceRegistrations
     /// <summary>
     /// The default dependency behaviour.
     /// </summary>
-    public class DefaultDependencyBehaviour : IDependencyBuilderBehaviour
+    public class DefaultDependencyBehaviour : IDependencyBehaviour
     {
 
         #region - - - - - - Fields - - - - - -
@@ -43,15 +43,15 @@ namespace Slender.ServiceRegistrations
                 dependency.ImplementationInstance == null &&
                 (!dependency.ImplementationTypes.Any() || (this.m_AllowMultipleImplementationTypes && isImplementationType));
 
-        void IDependencyBuilderBehaviour.AddImplementationType(Dependency dependency, Type type)
+        void IDependencyBehaviour.AddImplementationType(Dependency dependency, Type type)
         {
             if (this.CanRegisterImplementation(dependency, true)) dependency.ImplementationTypes.Add(type);
         }
 
-        void IDependencyBuilderBehaviour.AllowScannedImplementationTypes(Dependency dependency)
+        void IDependencyBehaviour.AllowScannedImplementationTypes(Dependency dependency)
             => dependency.AllowScannedImplementationTypes = true;
 
-        void IDependencyBuilderBehaviour.MergeDependencies(DependencyBuilder builder, Dependency dependency)
+        void IDependencyBehaviour.MergeDependencies(DependencyBuilder builder, Dependency dependency)
         {
             // Force the builder to take on the incoming dependency, so any custom behaviours and provided implementations will carry through the merge.
             _ = builder.WithDependency(dependency, out dependency);
@@ -76,22 +76,22 @@ namespace Slender.ServiceRegistrations
                 _ = builder.AddImplementationType(_ImplementationType);
         }
 
-        void IDependencyBuilderBehaviour.UpdateBehaviour(Dependency dependency, IDependencyBuilderBehaviour behaviour)
+        void IDependencyBehaviour.UpdateBehaviour(Dependency dependency, IDependencyBehaviour behaviour)
         {
             if (this.m_AllowBehaviourToChange) dependency.Behaviour = behaviour;
         }
 
-        void IDependencyBuilderBehaviour.UpdateImplementationFactory(Dependency dependency, Func<DependencyFactory, object> implementationFactory)
+        void IDependencyBehaviour.UpdateImplementationFactory(Dependency dependency, Func<DependencyFactory, object> implementationFactory)
         {
             if (this.CanRegisterImplementation(dependency, false)) dependency.ImplementationFactory = implementationFactory;
         }
 
-        void IDependencyBuilderBehaviour.UpdateImplementationInstance(Dependency dependency, object implementationInstance)
+        void IDependencyBehaviour.UpdateImplementationInstance(Dependency dependency, object implementationInstance)
         {
             if (this.CanRegisterImplementation(dependency, false)) dependency.ImplementationInstance = implementationInstance;
         }
 
-        void IDependencyBuilderBehaviour.UpdateLifetime(Dependency dependency, DependencyLifetime lifetime) { }
+        void IDependencyBehaviour.UpdateLifetime(Dependency dependency, DependencyLifetime lifetime) { }
 
         #endregion Methods
 

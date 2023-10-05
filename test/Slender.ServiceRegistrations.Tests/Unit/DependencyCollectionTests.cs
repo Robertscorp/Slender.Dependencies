@@ -14,7 +14,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #region - - - - - - Fields - - - - - -
 
-        private readonly Mock<IDependencyBuilderBehaviour> m_MockBuilderBehaviour = new();
+        private readonly Mock<IDependencyBehaviour> m_MockDependencyBehaviour = new();
         private readonly Mock<Action<DependencyCollection, Type>> m_MockScanningBehaviour = new();
 
         private readonly IAssemblyScan m_AssemblyScan;
@@ -39,15 +39,15 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                     .Setup(mock => mock.Types)
                     .Returns(() => this.m_AssemblyTypes2.ToArray());
 
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
                     .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
 
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
                     .Callback((Dependency dependency) => dependency.AllowScannedImplementationTypes = true);
 
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
                     .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
 
@@ -65,14 +65,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -81,13 +81,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
                 new Dependency(typeof(IGenericDependency<object>))
                 {
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     Lifetime = DependencyLifetime.Scoped()
                 }
             };
@@ -105,14 +105,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -131,13 +131,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
                 new Dependency(typeof(IGenericDependency<>))
                 {
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     Lifetime = DependencyLifetime.Scoped()
                 }
             };
@@ -155,14 +155,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -202,7 +202,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>
                     {
                         typeof(ClosedGenericImplementation),
@@ -214,7 +214,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan2);
 
             // Assert
@@ -227,14 +227,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
                 new Dependency(typeof(IGenericDependency<>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -251,13 +251,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddAssemblyScan_AddingEmptyScanWithDependencyThatAllowsScannedImplementations_DoesNothing()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Assert
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion AddAssemblyScan Tests
@@ -330,14 +330,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
                     Lifetime = DependencyLifetime.Scoped()
                 }
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -356,14 +356,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
                     Lifetime = DependencyLifetime.Scoped()
                 }
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -382,14 +382,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
                     Lifetime = DependencyLifetime.Scoped()
                 }
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -410,7 +410,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IDependency))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>()
                     {
                         typeof(DependencyImplementation),
@@ -424,7 +424,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_DependencyCollection.AddDependency(
                     typeof(IDependency),
                     DependencyLifetime.Scoped(),
-                    r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+                    r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
@@ -480,30 +480,30 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
             _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), r => r.ScanForImplementations());
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
         public void ConfigureDependency_EnablingAllowScanOnDependencyWithNoPreScannedImplementations_EnablesAllowScan()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), r => r.ScanForImplementations());
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -520,7 +520,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -548,14 +548,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
                     Lifetime = DependencyLifetime.Scoped()
                 },
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Singleton()
                 }
@@ -564,7 +564,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Act
             _ = this.m_DependencyCollection
                     .ConfigureDependency(typeof(IGenericDependency<object>), r
-                        => r.WithBehaviour(this.m_MockBuilderBehaviour.Object)
+                        => r.WithBehaviour(this.m_MockDependencyBehaviour.Object)
                             .WithLifetime(DependencyLifetime.Singleton()));
 
             // Assert
@@ -585,7 +585,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IDependency))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(DependencyImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -594,7 +594,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Act
             _ = this.m_DependencyCollection
                     .ConfigureDependency(typeof(IDependency), r
-                        => r.WithBehaviour(this.m_MockBuilderBehaviour.Object)
+                        => r.WithBehaviour(this.m_MockDependencyBehaviour.Object)
                             .ScanForImplementations());
 
             // Assert
@@ -708,14 +708,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _Collection = new DependencyCollection().AddScoped(typeof(object));
             var _Dependency = _Collection.Single();
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(object), r => _Builder = r.WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(object), r => _Builder = r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_Collection);
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.MergeDependencies(_Builder, _Dependency), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.MergeDependencies(_Builder, _Dependency), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -751,7 +751,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             };
 
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_Collection);
@@ -814,7 +814,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -842,7 +842,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -861,7 +861,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            var _DependencyBehaviour = new Mock<IDependencyBuilderBehaviour>().Object;
+            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
             _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
@@ -873,7 +873,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -895,10 +895,10 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            var _DependencyBehaviour = new Mock<IDependencyBuilderBehaviour>().Object;
+            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.ScanForImplementations());
 
@@ -907,7 +907,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -930,7 +930,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation2));
             this.m_AssemblyTypes2.Add(typeof(ClosedGenericImplementation));
 
-            var _DependencyBehaviour = new Mock<IDependencyBuilderBehaviour>().Object;
+            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan2);
 
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
@@ -940,7 +940,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
                 new Dependency(typeof(IGenericDependency<object>))
                 {
                     AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockBuilderBehaviour.Object,
+                    Behaviour = this.m_MockDependencyBehaviour.Object,
                     ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation), typeof(ClosedGenericImplementation2) },
                     Lifetime = DependencyLifetime.Scoped()
                 }
@@ -948,7 +948,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());

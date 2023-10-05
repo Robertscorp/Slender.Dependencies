@@ -6,7 +6,7 @@ namespace Slender.ServiceRegistrations
     /// <summary>
     /// Used to determine the configuration behaviours when updating a dependency.
     /// </summary>
-    public interface IDependencyBuilderBehaviour
+    public interface IDependencyBehaviour
     {
 
         #region - - - - - - Methods - - - - - -
@@ -39,7 +39,7 @@ namespace Slender.ServiceRegistrations
         /// </summary>
         /// <param name="dependency">The dependency to update.</param>
         /// <param name="behaviour">The new behaviour for the dependency.</param>
-        void UpdateBehaviour(Dependency dependency, IDependencyBuilderBehaviour behaviour);
+        void UpdateBehaviour(Dependency dependency, IDependencyBehaviour behaviour);
 
         /// <summary>
         /// Sets the implementation factory of the dependency.

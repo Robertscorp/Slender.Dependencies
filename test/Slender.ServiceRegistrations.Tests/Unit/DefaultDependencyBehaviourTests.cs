@@ -16,19 +16,19 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         private static readonly Func<DependencyFactory, object> s_ImplementationFactory = factory => new object();
         private static readonly object s_ImplementationInstance = new();
 
-        private readonly IDependencyBuilderBehaviour m_DependencyBehaviour = new Mock<IDependencyBuilderBehaviour>().Object;
+        private readonly IDependencyBehaviour m_DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
         #endregion Fields
 
         #region - - - - - - Properties - - - - - -
 
-        private static IDependencyBuilderBehaviour BuilderBehaviour_Default
+        private static IDependencyBehaviour DependencyBehaviour_Default
             => DefaultDependencyBehaviour.Instance();
 
-        private static IDependencyBuilderBehaviour BuilderBehaviour_DisableChange
+        private static IDependencyBehaviour DependencyBehaviour_DisableChange
             => DefaultDependencyBehaviour.Instance(allowBehaviourToChange: false);
 
-        private static IDependencyBuilderBehaviour BuilderBehaviour_MultipleTypes
+        private static IDependencyBehaviour DependencyBehaviour_MultipleTypes
             => DefaultDependencyBehaviour.Instance(allowMultipleImplementationTypes: true);
 
         private static Dependency Dependency_Empty
@@ -52,7 +52,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         [Theory]
         [MemberData(nameof(AddImplementationType_VariousScenarios_ResultsInExpectedDependency_GetTestData))]
-        public void AddImplementationType_VariousScenarios_ResultsInExpectedDependency(Dependency startingDependency, Dependency expectedDependency, IDependencyBuilderBehaviour behaviour)
+        public void AddImplementationType_VariousScenarios_ResultsInExpectedDependency(Dependency startingDependency, Dependency expectedDependency, IDependencyBehaviour behaviour)
         {
             // Arrange
 
@@ -66,14 +66,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public static IEnumerable<object[]> AddImplementationType_VariousScenarios_ResultsInExpectedDependency_GetTestData()
             => new[]
             {
-                new object[] { Dependency_Empty, DependencyWithSingleType, BuilderBehaviour_Default },
-                new object[] { DependencyWithSingleType, DependencyWithSingleType, BuilderBehaviour_Default },
-                new object[] { DependencyWithInstance, DependencyWithInstance, BuilderBehaviour_Default },
-                new object[] { DependencyWithFactory, DependencyWithFactory, BuilderBehaviour_Default },
-                new object[] { Dependency_Empty, DependencyWithSingleType, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithSingleType, DependencyWithMultipleTypes, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithInstance, DependencyWithInstance, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithFactory, DependencyWithFactory, BuilderBehaviour_MultipleTypes },
+                new object[] { Dependency_Empty, DependencyWithSingleType, DependencyBehaviour_Default },
+                new object[] { DependencyWithSingleType, DependencyWithSingleType, DependencyBehaviour_Default },
+                new object[] { DependencyWithInstance, DependencyWithInstance, DependencyBehaviour_Default },
+                new object[] { DependencyWithFactory, DependencyWithFactory, DependencyBehaviour_Default },
+                new object[] { Dependency_Empty, DependencyWithSingleType, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithSingleType, DependencyWithMultipleTypes, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithInstance, DependencyWithInstance, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithFactory, DependencyWithFactory, DependencyBehaviour_MultipleTypes },
             };
 
         #endregion AddImplementationType Tests
@@ -88,7 +88,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _Expected = new Dependency(typeof(object)) { AllowScannedImplementationTypes = true };
 
             // Act
-            BuilderBehaviour_Default.AllowScannedImplementationTypes(_Actual);
+            DependencyBehaviour_Default.AllowScannedImplementationTypes(_Actual);
 
             // Assert
             _ = _Actual.Should().BeEquivalentTo(_Expected);
@@ -102,11 +102,11 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void MergeDependency_AnyDependency_TakesOnIncomingDependencyAndAttemptsToOverrideWithExisting()
         {
             // Arrange
-            var _MockBuilderBehaviour = new Mock<IDependencyBuilderBehaviour>();
+            var _MockDependencyBehaviour = new Mock<IDependencyBehaviour>();
 
             var _Builder = new DependencyBuilder(typeof(object));
             _Builder.Dependency.AllowScannedImplementationTypes = true;
-            _Builder.Dependency.Behaviour = BuilderBehaviour_MultipleTypes;
+            _Builder.Dependency.Behaviour = DependencyBehaviour_MultipleTypes;
             _Builder.Dependency.ImplementationFactory = factory => string.Empty;
             _Builder.Dependency.ImplementationInstance = string.Empty;
             _Builder.Dependency.ImplementationTypes = new List<Type> { typeof(object), typeof(string) };
@@ -116,7 +116,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             var _Dependency = new Dependency(typeof(object))
             {
-                Behaviour = _MockBuilderBehaviour.Object,
+                Behaviour = _MockDependencyBehaviour.Object,
                 ImplementationTypes = new List<Type> { typeof(object), typeof(int) },
                 Lifetime = TestDependencyLifetime.Instance(true)
             };
@@ -127,13 +127,13 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Assert
             _ = _Builder.Dependency.Should().BeEquivalentTo(_Dependency);
 
-            _MockBuilderBehaviour.Verify(mock => mock.AddImplementationType(_Builder.Dependency, typeof(string)));
-            _MockBuilderBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(_Builder.Dependency));
-            _MockBuilderBehaviour.Verify(mock => mock.UpdateBehaviour(_Builder.Dependency, _InitialDependency.Behaviour));
-            _MockBuilderBehaviour.Verify(mock => mock.UpdateImplementationFactory(_Builder.Dependency, _InitialDependency.ImplementationFactory));
-            _MockBuilderBehaviour.Verify(mock => mock.UpdateImplementationInstance(_Builder.Dependency, _InitialDependency.ImplementationInstance));
-            _MockBuilderBehaviour.Verify(mock => mock.UpdateLifetime(_Builder.Dependency, _InitialDependency.Lifetime));
-            _MockBuilderBehaviour.VerifyNoOtherCalls();
+            _MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(_Builder.Dependency, typeof(string)));
+            _MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(_Builder.Dependency));
+            _MockDependencyBehaviour.Verify(mock => mock.UpdateBehaviour(_Builder.Dependency, _InitialDependency.Behaviour));
+            _MockDependencyBehaviour.Verify(mock => mock.UpdateImplementationFactory(_Builder.Dependency, _InitialDependency.ImplementationFactory));
+            _MockDependencyBehaviour.Verify(mock => mock.UpdateImplementationInstance(_Builder.Dependency, _InitialDependency.ImplementationInstance));
+            _MockDependencyBehaviour.Verify(mock => mock.UpdateLifetime(_Builder.Dependency, _InitialDependency.Lifetime));
+            _MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion MergeDependency Tests
@@ -157,7 +157,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void UpdateBehaviour_CannotUpdateBehaviour_BehaviourDoesNotChange()
         {
             // Arrange
-            var _Dependency = new Dependency(typeof(object)) { Behaviour = BuilderBehaviour_DisableChange };
+            var _Dependency = new Dependency(typeof(object)) { Behaviour = DependencyBehaviour_DisableChange };
             var _Behaviour = _Dependency.Behaviour;
 
             // Act
@@ -173,7 +173,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         [Theory]
         [MemberData(nameof(UpdateImplementationFactory_VariousScenarios_ResultsInExpectedDependency_GetTestData))]
-        public void UpdateImplementationFactory_VariousScenarios_ResultsInExpectedDependency(Dependency startingDependency, Dependency expectedDependency, IDependencyBuilderBehaviour behaviour)
+        public void UpdateImplementationFactory_VariousScenarios_ResultsInExpectedDependency(Dependency startingDependency, Dependency expectedDependency, IDependencyBehaviour behaviour)
         {
             // Arrange
 
@@ -187,14 +187,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public static IEnumerable<object[]> UpdateImplementationFactory_VariousScenarios_ResultsInExpectedDependency_GetTestData()
             => new[]
             {
-                new object[] { Dependency_Empty, DependencyWithFactory, BuilderBehaviour_Default },
-                new object[] { DependencyWithSingleType, DependencyWithSingleType, BuilderBehaviour_Default },
-                new object[] { DependencyWithInstance, DependencyWithInstance, BuilderBehaviour_Default },
-                new object[] { DependencyWithFactory, DependencyWithFactory, BuilderBehaviour_Default },
-                new object[] { Dependency_Empty, DependencyWithFactory, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithSingleType, DependencyWithSingleType, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithInstance, DependencyWithInstance, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithFactory, DependencyWithFactory, BuilderBehaviour_MultipleTypes },
+                new object[] { Dependency_Empty, DependencyWithFactory, DependencyBehaviour_Default },
+                new object[] { DependencyWithSingleType, DependencyWithSingleType, DependencyBehaviour_Default },
+                new object[] { DependencyWithInstance, DependencyWithInstance, DependencyBehaviour_Default },
+                new object[] { DependencyWithFactory, DependencyWithFactory, DependencyBehaviour_Default },
+                new object[] { Dependency_Empty, DependencyWithFactory, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithSingleType, DependencyWithSingleType, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithInstance, DependencyWithInstance, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithFactory, DependencyWithFactory, DependencyBehaviour_MultipleTypes },
             };
 
         #endregion UpdateImplementationFactory Tests
@@ -203,7 +203,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         [Theory]
         [MemberData(nameof(UpdateImplementationInstance_VariousScenarios_ResultsInExpectedDependency_GetTestData))]
-        public void UpdateImplementationInstance_VariousScenarios_ResultsInExpectedDependency(Dependency startingDependency, Dependency expectedDependency, IDependencyBuilderBehaviour behaviour)
+        public void UpdateImplementationInstance_VariousScenarios_ResultsInExpectedDependency(Dependency startingDependency, Dependency expectedDependency, IDependencyBehaviour behaviour)
         {
             // Arrange
 
@@ -217,14 +217,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public static IEnumerable<object[]> UpdateImplementationInstance_VariousScenarios_ResultsInExpectedDependency_GetTestData()
             => new[]
             {
-                new object[] { Dependency_Empty, DependencyWithInstance, BuilderBehaviour_Default },
-                new object[] { DependencyWithSingleType, DependencyWithSingleType, BuilderBehaviour_Default },
-                new object[] { DependencyWithInstance, DependencyWithInstance, BuilderBehaviour_Default },
-                new object[] { DependencyWithFactory, DependencyWithFactory, BuilderBehaviour_Default },
-                new object[] { Dependency_Empty, DependencyWithInstance, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithSingleType, DependencyWithSingleType, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithInstance, DependencyWithInstance, BuilderBehaviour_MultipleTypes },
-                new object[] { DependencyWithFactory, DependencyWithFactory, BuilderBehaviour_MultipleTypes },
+                new object[] { Dependency_Empty, DependencyWithInstance, DependencyBehaviour_Default },
+                new object[] { DependencyWithSingleType, DependencyWithSingleType, DependencyBehaviour_Default },
+                new object[] { DependencyWithInstance, DependencyWithInstance, DependencyBehaviour_Default },
+                new object[] { DependencyWithFactory, DependencyWithFactory, DependencyBehaviour_Default },
+                new object[] { Dependency_Empty, DependencyWithInstance, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithSingleType, DependencyWithSingleType, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithInstance, DependencyWithInstance, DependencyBehaviour_MultipleTypes },
+                new object[] { DependencyWithFactory, DependencyWithFactory, DependencyBehaviour_MultipleTypes },
             };
 
         #endregion UpdateImplementationInstance Tests

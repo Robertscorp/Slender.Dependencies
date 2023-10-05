@@ -13,8 +13,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
         #region - - - - - - Fields - - - - - -
 
+        private readonly Mock<IDependencyBehaviour> m_MockDependencyBehaviour = new();
         private readonly Mock<Action> m_MockOnScanForImplementationTypes = new();
-        private readonly Mock<IDependencyBuilderBehaviour> m_MockBuilderBehaviour = new();
 
         private readonly DependencyBuilder m_Builder = new(typeof(IDependency));
 
@@ -26,7 +26,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         {
             _ = this.m_Builder.OnScanForImplementations = this.m_MockOnScanForImplementationTypes.Object;
             _ = this.m_Builder.Dependency.Lifetime = TestDependencyLifetime.Instance(true);
-            _ = this.m_Builder.Dependency.Behaviour = this.m_MockBuilderBehaviour.Object;
+            _ = this.m_Builder.Dependency.Behaviour = this.m_MockDependencyBehaviour.Object;
         }
 
         #endregion Constructors
@@ -42,15 +42,15 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_Builder.AddImplementationType<object>();
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AddImplementationType(this.m_Builder.Dependency, typeof(object)), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(this.m_Builder.Dependency, typeof(object)), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
         public void AddImplementationType_SameGenericAddedMultipleTimes_OnlyAddsTypeOnce()
         {
             // Arrange
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
                     .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
 
@@ -81,15 +81,15 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_Builder.AddImplementationType(typeof(object));
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AddImplementationType(this.m_Builder.Dependency, typeof(object)), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(this.m_Builder.Dependency, typeof(object)), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
         public void AddImplementationType_SameTypeAddedMultipleTimes_OnlyAddsTypeOnce()
         {
             // Arrange
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
                     .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
 
@@ -109,7 +109,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void ScanForImplementations_BehaviourEnablesScanning_ScansForImplementations()
         {
             // Arrange
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
                     .Callback((Dependency d) => d.AllowScannedImplementationTypes = true);
 
@@ -118,15 +118,15 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Assert
             this.m_MockOnScanForImplementationTypes.Verify(mock => mock.Invoke(), Times.Once());
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(this.m_Builder.Dependency), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(this.m_Builder.Dependency), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
         public void ScanForImplementations_BehaviourPreventsScanning_DoesNotScanForImplementations()
         {
             // Arrange
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
                     .Callback((Dependency d) => d.AllowScannedImplementationTypes = false);
 
@@ -135,8 +135,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Assert
             this.m_MockOnScanForImplementationTypes.Verify(mock => mock.Invoke(), Times.Never());
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(this.m_Builder.Dependency), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(this.m_Builder.Dependency), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion ScanForImplementations Tests
@@ -159,8 +159,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_Builder.WithImplementationFactory(_Factory);
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.UpdateImplementationFactory(this.m_Builder.Dependency, _Factory), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.UpdateImplementationFactory(this.m_Builder.Dependency, _Factory), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion WithImplementationFactory Tests
@@ -195,8 +195,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_Builder.WithImplementationInstance(string.Empty);
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.UpdateImplementationInstance(this.m_Builder.Dependency, string.Empty), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.UpdateImplementationInstance(this.m_Builder.Dependency, string.Empty), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion WithImplementationInstance Tests
@@ -219,8 +219,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_Builder.WithLifetime(_Lifetime);
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.UpdateLifetime(this.m_Builder.Dependency, _Lifetime), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.UpdateLifetime(this.m_Builder.Dependency, _Lifetime), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -230,7 +230,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_Builder.Dependency.Lifetime = TestDependencyLifetime.Instance(true);
             this.m_Builder.Dependency.ImplementationInstance = 123;
 
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
                     .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
 
@@ -248,7 +248,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             this.m_Builder.Dependency.Lifetime = TestDependencyLifetime.Instance(true);
             this.m_Builder.Dependency.ImplementationInstance = 123;
 
-            _ = this.m_MockBuilderBehaviour
+            _ = this.m_MockDependencyBehaviour
                     .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
                     .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
 
@@ -290,7 +290,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _Expected = new Dependency(typeof(IDependency))
             {
                 AllowScannedImplementationTypes = true,
-                Behaviour = this.m_MockBuilderBehaviour.Object,
+                Behaviour = this.m_MockDependencyBehaviour.Object,
                 ImplementationFactory = factory => string.Empty,
                 ImplementationInstance = string.Empty,
                 ImplementationTypes = new List<Type> { typeof(IDependency) },
@@ -364,14 +364,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void WithBehaviour_AnyBehaviour_UpdatesBehaviourThroughBehaviour()
         {
             // Arrange
-            var _Behaviour = new Mock<IDependencyBuilderBehaviour>().Object;
+            var _Behaviour = new Mock<IDependencyBehaviour>().Object;
 
             // Act
             _ = this.m_Builder.WithBehaviour(_Behaviour);
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.UpdateBehaviour(this.m_Builder.Dependency, _Behaviour), Times.Once());
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.UpdateBehaviour(this.m_Builder.Dependency, _Behaviour), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion WithBehaviour Tests

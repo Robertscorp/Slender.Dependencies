@@ -127,12 +127,12 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockBuilderBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
-            this.m_MockBuilderBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -141,10 +141,10 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
 
             // Act
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockBuilderBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => r.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Assert
-            this.m_MockBuilderBehaviour.VerifyNoOtherCalls();
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
         }
 
         #endregion AddScoped Tests

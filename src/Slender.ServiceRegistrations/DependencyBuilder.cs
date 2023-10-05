@@ -73,7 +73,7 @@ namespace Slender.ServiceRegistrations
         /// Allowing scanning of implementation types is handled through the behaviour of the dependency,
         /// which may not result in scanning being allowed. If scanning is not allowed then scanning will not occur.<br/>
         /// <br/>
-        /// For more information on allowing scanning, see <see cref="IDependencyBuilderBehaviour.AllowScannedImplementationTypes(Dependency)"/><br/>
+        /// For more information on allowing scanning, see <see cref="IDependencyBehaviour.AllowScannedImplementationTypes(Dependency)"/><br/>
         /// For more information on scanned types, see <see cref="DependencyCollection.AddAssemblyScan(AssemblyScanner.IAssemblyScan)"/>.
         /// </remarks>
         public DependencyBuilder ScanForImplementations()
@@ -191,7 +191,7 @@ namespace Slender.ServiceRegistrations
         /// <param name="behaviour">The new behaviour for the dependency.</param>
         /// <returns>Itself.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="behaviour"/> is null.</exception>
-        public DependencyBuilder WithBehaviour(IDependencyBuilderBehaviour behaviour)
+        public DependencyBuilder WithBehaviour(IDependencyBehaviour behaviour)
         {
             if (behaviour is null) throw new ArgumentNullException(nameof(behaviour));
 

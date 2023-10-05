@@ -249,7 +249,7 @@ namespace Slender.ServiceRegistrations
         /// <returns>Itself.</returns>
         /// <remarks>
         /// If a <see cref="Dependency"/> is registered in both collections, then the incoming dependency will be merged into the existing dependency by invoking 
-        /// <see cref="IDependencyBuilderBehaviour.MergeDependencies(DependencyBuilder, Dependency)"/> using the behaviour on the existing dependency.<br/>
+        /// <see cref="IDependencyBehaviour.MergeDependencies(DependencyBuilder, Dependency)"/> using the behaviour on the existing dependency.<br/>
         /// <br/>
         /// Additionally, the specified <paramref name="dependencies"/> will be completely cleared as a part of the merge process.
         /// </remarks>
