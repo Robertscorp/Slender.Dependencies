@@ -52,7 +52,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
-                    .Callback((Dependency r, Type t) => r.ImplementationTypes.Add(t));
+                    .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
 
             // Act
             _ = this.m_Builder.AddImplementationType<object>();
@@ -91,7 +91,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
-                    .Callback((Dependency r, Type t) => r.ImplementationTypes.Add(t));
+                    .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
 
             // Act
             _ = this.m_Builder.AddImplementationType(typeof(object));
@@ -111,7 +111,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
-                    .Callback((Dependency r) => r.AllowScannedImplementationTypes = true);
+                    .Callback((Dependency d) => d.AllowScannedImplementationTypes = true);
 
             // Act
             _ = this.m_Builder.ScanForImplementations();
@@ -128,7 +128,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             // Arrange
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
-                    .Callback((Dependency r) => r.AllowScannedImplementationTypes = false);
+                    .Callback((Dependency d) => d.AllowScannedImplementationTypes = false);
 
             // Act
             _ = this.m_Builder.ScanForImplementations();
@@ -232,7 +232,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
-                    .Callback((Dependency r, DependencyLifetime l) => r.Lifetime = l);
+                    .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
 
             // Act
             _ = this.m_Builder.WithLifetime(TestDependencyLifetime.Instance(true));
@@ -250,7 +250,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
-                    .Callback((Dependency r, DependencyLifetime l) => r.Lifetime = l);
+                    .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
 
             // Act
             _ = this.m_Builder.WithLifetime(TestDependencyLifetime.Instance(false));

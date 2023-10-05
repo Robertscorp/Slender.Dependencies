@@ -41,7 +41,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
-                    .Callback((Dependency r, Type t) => r.ImplementationTypes.Add(t));
+                    .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
 
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
@@ -49,7 +49,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             _ = this.m_MockBuilderBehaviour
                     .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
-                    .Callback((Dependency r, DependencyLifetime l) => r.Lifetime = l);
+                    .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
 
             this.m_AssemblyScan = _MockAssemblyScan.Object;
             this.m_AssemblyScan2 = _MockAssemblyScan2.Object;
