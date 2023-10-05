@@ -267,14 +267,14 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void AddDependency_NotSpecifyingDependencyType_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.AddDependency(null, DependencyLifetime.Scoped(), r => { }))
+                .Exception(() => this.m_DependencyCollection.AddDependency(null, DependencyLifetime.Scoped(), d => { }))
                 .Should()
                 .BeOfType<ArgumentNullException>();
 
         [Fact]
         public void AddDependency_NotSpecifyingLifetime_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.AddDependency(typeof(IDependency), null, r => { }))
+                .Exception(() => this.m_DependencyCollection.AddDependency(typeof(IDependency), null, d => { }))
                 .Should()
                 .BeOfType<ArgumentNullException>();
 
@@ -292,10 +292,10 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void AddDependency_AddingAlreadyAddedDependency_ThrowsInvalidOperationException()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), r => { });
+            _ = this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), d => { });
 
             // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), r => { }));
+            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), d => { }));
 
             // Assert
             _ = _Exception.Should().BeOfType<InvalidOperationException>();
@@ -311,7 +311,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), r => { }));
+            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => { }));
 
             // Assert
             _ = _Exception.Should().BeOfType<InvalidOperationException>();
@@ -437,7 +437,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void ConfigureDependency_NotSpecifyingDependencyType_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.ConfigureDependency(null, r => { }))
+                .Exception(() => this.m_DependencyCollection.ConfigureDependency(null, d => { }))
                 .Should().BeOfType<ArgumentNullException>();
 
         [Fact]
@@ -456,7 +456,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         [Fact]
         public void ConfigureDependency_ConfigureNeverAddedDependency_ThrowsInvalidOperationException()
             => Record
-                .Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), r => { }))
+                .Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => { }))
                 .Should().BeOfType<InvalidOperationException>();
 
         [Fact]
@@ -468,7 +468,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), r => { }));
+            var _Exception = Record.Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => { }));
 
             // Assert
             _ = _Exception.Should().BeOfType<InvalidOperationException>();
@@ -563,8 +563,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection
-                    .ConfigureDependency(typeof(IGenericDependency<object>), r
-                        => r.WithBehaviour(this.m_MockDependencyBehaviour.Object)
+                    .ConfigureDependency(typeof(IGenericDependency<object>), d
+                        => d.WithBehaviour(this.m_MockDependencyBehaviour.Object)
                             .WithLifetime(DependencyLifetime.Singleton()));
 
             // Assert
@@ -593,8 +593,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection
-                    .ConfigureDependency(typeof(IDependency), r
-                        => r.WithBehaviour(this.m_MockDependencyBehaviour.Object)
+                    .ConfigureDependency(typeof(IDependency), d
+                        => d.WithBehaviour(this.m_MockDependencyBehaviour.Object)
                             .ScanForImplementations());
 
             // Assert
@@ -708,7 +708,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
             var _Collection = new DependencyCollection().AddScoped(typeof(object));
             var _Dependency = _Collection.Single();
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(object), r => _Builder = r.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(object), d => _Builder = d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_Collection);
@@ -881,8 +881,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), r
-                    => r.WithBehaviour(_DependencyBehaviour)
+            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d
+                    => d.WithBehaviour(_DependencyBehaviour)
                         .WithLifetime(DependencyLifetime.Singleton()));
 
             // Assert
@@ -915,8 +915,8 @@ namespace Slender.ServiceRegistrations.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.MergeDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), r
-                    => r.WithBehaviour(_DependencyBehaviour)
+            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d
+                    => d.WithBehaviour(_DependencyBehaviour)
                         .WithLifetime(DependencyLifetime.Singleton()));
 
             // Assert
@@ -962,7 +962,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void ScanForUnregisteredDependencies_ManuallyRegisteredDependency_NotScanned()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), r => { });
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => { });
 
             // Act
             _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
@@ -1029,7 +1029,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_AllDependenciesAndPackagesResolved_DoesNotThrowException()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => _ = r.AddImplementationType<DependencyImplementation>());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => _ = d.AddImplementationType<DependencyImplementation>());
             _ = this.m_DependencyCollection.AddRequiredPackage("Package").ResolveRequiredPackage("Package");
 
             // Act
@@ -1095,7 +1095,7 @@ namespace Slender.ServiceRegistrations.Tests.Unit
         public void Validate_NotAllDependenciesAndPackagesResolved_ThrowsException()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), r => { });
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => { });
             _ = this.m_DependencyCollection.AddRequiredPackage("Package");
 
             // Act

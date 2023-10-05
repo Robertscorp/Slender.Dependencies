@@ -232,11 +232,11 @@ namespace Slender.ServiceRegistrations
             => this.m_BuildersByType
                 .Values
                 .Select(b => b.Dependency)
-                .Where(r => !r.DependencyType.IsGenericTypeDefinition
-                            || !r.AllowScannedImplementationTypes
-                            || r.ImplementationFactory != null
-                            || r.ImplementationInstance != null
-                            || r.ImplementationTypes.Any())
+                .Where(d => !d.DependencyType.IsGenericTypeDefinition
+                            || !d.AllowScannedImplementationTypes
+                            || d.ImplementationFactory != null
+                            || d.ImplementationInstance != null
+                            || d.ImplementationTypes.Any())
                 .GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
