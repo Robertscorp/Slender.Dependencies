@@ -1,11 +1,11 @@
 ﻿using FluentAssertions;
 using Moq;
-using Slender.ServiceRegistrations.Tests.Support;
+using Slender.Dependencies.Tests.Support;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace Slender.ServiceRegistrations.Tests.Unit
+namespace Slender.Dependencies.Tests.Unit
 {
 
     public class DefaultDependencyBehaviourTests

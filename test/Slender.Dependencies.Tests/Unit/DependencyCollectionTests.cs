@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace Slender.ServiceRegistrations.Tests.Unit
+namespace Slender.Dependencies.Tests.Unit
 {
 
     public partial class DependencyCollectionTests
