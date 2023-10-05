@@ -7,9 +7,9 @@
     <Authors>Robertscorp</Authors>
     <Description>A .NET library to register your project's dependencies without being tied to a specific dependency injection container.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/Robertscorp/Slender.ServiceRegistrations</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Robertscorp/Slender.Dependencies</PackageProjectUrl>
     <Copyright>Copyright Slender</Copyright>
-    <RepositoryUrl>https://github.com/Robertscorp/Slender.ServiceRegistrations</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Robertscorp/Slender.Dependencies</RepositoryUrl>
     <PackageTags>dependency; injection; abstraction;</PackageTags>
     <Company>Slender</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

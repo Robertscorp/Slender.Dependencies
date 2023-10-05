@@ -1,1 +1,1 @@
-# Slender.ServiceRegistrations
+# Slender.Dependencies

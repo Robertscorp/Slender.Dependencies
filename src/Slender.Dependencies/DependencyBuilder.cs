@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Slender.ServiceRegistrations
+namespace Slender.Dependencies
 {
 
     /// <summary>
-    /// A builder that is used to configure a <see cref="ServiceRegistrations.Dependency"/>.
+    /// A builder that is used to configure a <see cref="Dependencies.Dependency"/>.
     /// </summary>
     public class DependencyBuilder
     {

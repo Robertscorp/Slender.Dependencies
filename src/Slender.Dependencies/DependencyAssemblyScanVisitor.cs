@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Slender.ServiceRegistrations
+namespace Slender.Dependencies
 {
 
     internal class DependencyAssemblyScanVisitor : AssemblyScanVisitor

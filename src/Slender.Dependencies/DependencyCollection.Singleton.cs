@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Slender.ServiceRegistrations
+namespace Slender.Dependencies
 {
 
     public partial class DependencyCollection

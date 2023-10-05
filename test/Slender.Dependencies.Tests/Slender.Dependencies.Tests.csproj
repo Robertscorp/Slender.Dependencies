@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Slender.ServiceRegistrations\Slender.ServiceRegistrations.csproj" />
+    <ProjectReference Include="..\..\src\Slender.Dependencies\Slender.Dependencies.csproj" />
   </ItemGroup>
 
 </Project>

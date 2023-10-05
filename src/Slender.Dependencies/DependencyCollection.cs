@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Slender.ServiceRegistrations
+namespace Slender.Dependencies
 {
 
     /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Slender.ServiceRegistrations
+namespace Slender.Dependencies
 {
 
     /// <summary>

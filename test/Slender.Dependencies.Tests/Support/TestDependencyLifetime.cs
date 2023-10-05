@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Slender.ServiceRegistrations.Tests.Support
+namespace Slender.Dependencies.Tests.Support
 {
 
     internal static class TestDependencyLifetime

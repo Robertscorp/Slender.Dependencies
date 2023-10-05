@@ -1,4 +1,4 @@
-﻿namespace Slender.ServiceRegistrations
+﻿namespace Slender.Dependencies
 {
 
     /// <summary>
