@@ -118,6 +118,52 @@ namespace Slender.Dependencies
         }
 
         /// <summary>
+        /// Adds the specified <paramref name="dependencies"/>.
+        /// </summary>
+        /// <param name="dependencies">The dependencies to add.</param>
+        /// <returns>Itself.</returns>
+        /// <remarks>
+        /// If a <see cref="Dependency"/> is registered in both collections, then the incoming dependency will be merged into the existing dependency by invoking 
+        /// <see cref="IDependencyBehaviour.MergeDependencies(DependencyBuilder, Dependency)"/> using the behaviour on the existing dependency.<br/>
+        /// <br/>
+        /// Additionally, the specified <paramref name="dependencies"/> will be completely cleared once they have been added to this collection.
+        /// </remarks>
+        public DependencyCollection AddDependencies(DependencyCollection dependencies)
+        {
+            foreach (var _BuilderByType in dependencies.m_BuildersByType)
+                if (this.m_BuildersByType.TryGetValue(_BuilderByType.Key, out var _Builder))
+                    _Builder.Dependency.Behaviour.MergeDependencies(_Builder, _BuilderByType.Value.Dependency);
+
+                else
+                {
+                    if (this.m_UnregisteredBuildersByType.TryGetValue(_BuilderByType.Key, out _Builder))
+                    {
+                        _ = this.m_UnregisteredBuildersByType.Remove(_BuilderByType.Key);
+                        _BuilderByType.Value.AddScannedImplementationTypes(_Builder.ScannedImplementationTypes, true);
+                    }
+
+                    this.AddBuilder(_BuilderByType.Value);
+                }
+
+            foreach (var _BuilderByType in dependencies.m_UnregisteredBuildersByType)
+                if (this.m_BuildersByType.TryGetValue(_BuilderByType.Key, out var _Builder)
+                    || this.m_UnregisteredBuildersByType.TryGetValue(_BuilderByType.Key, out _Builder))
+                    _Builder.AddScannedImplementationTypes(_BuilderByType.Value.ScannedImplementationTypes, false);
+
+                else
+                    this.AddUnregisteredDependency(_BuilderByType.Value);
+
+            foreach (var _RequiredPackage in dependencies.m_RequiredPackages)
+                _ = this.AddRequiredPackage(_RequiredPackage);
+
+            dependencies.m_BuildersByType.Clear();
+            dependencies.m_UnregisteredBuildersByType.Clear();
+            dependencies.m_RequiredPackages.Clear();
+
+            return this;
+        }
+
+        /// <summary>
         /// Registers the specified <paramref name="type"/> as a dependency with the specified <paramref name="lifetime"/>.
         /// </summary>
         /// <param name="type">The type of dependency.</param>
@@ -241,52 +287,6 @@ namespace Slender.Dependencies
 
         IEnumerator IEnumerable.GetEnumerator()
             => ((IEnumerable<DependencyBuilder>)this).GetEnumerator();
-
-        /// <summary>
-        /// Merges in all specified <paramref name="dependencies"/>.
-        /// </summary>
-        /// <param name="dependencies">The dependencies merge in.</param>
-        /// <returns>Itself.</returns>
-        /// <remarks>
-        /// If a <see cref="Dependency"/> is registered in both collections, then the incoming dependency will be merged into the existing dependency by invoking 
-        /// <see cref="IDependencyBehaviour.MergeDependencies(DependencyBuilder, Dependency)"/> using the behaviour on the existing dependency.<br/>
-        /// <br/>
-        /// Additionally, the specified <paramref name="dependencies"/> will be completely cleared as a part of the merge process.
-        /// </remarks>
-        public DependencyCollection MergeDependencies(DependencyCollection dependencies)
-        {
-            foreach (var _BuilderByType in dependencies.m_BuildersByType)
-                if (this.m_BuildersByType.TryGetValue(_BuilderByType.Key, out var _Builder))
-                    _Builder.Dependency.Behaviour.MergeDependencies(_Builder, _BuilderByType.Value.Dependency);
-
-                else
-                {
-                    if (this.m_UnregisteredBuildersByType.TryGetValue(_BuilderByType.Key, out _Builder))
-                    {
-                        _ = this.m_UnregisteredBuildersByType.Remove(_BuilderByType.Key);
-                        _BuilderByType.Value.AddScannedImplementationTypes(_Builder.ScannedImplementationTypes, true);
-                    }
-
-                    this.AddBuilder(_BuilderByType.Value);
-                }
-
-            foreach (var _BuilderByType in dependencies.m_UnregisteredBuildersByType)
-                if (this.m_BuildersByType.TryGetValue(_BuilderByType.Key, out var _Builder)
-                    || this.m_UnregisteredBuildersByType.TryGetValue(_BuilderByType.Key, out _Builder))
-                    _Builder.AddScannedImplementationTypes(_BuilderByType.Value.ScannedImplementationTypes, false);
-
-                else
-                    this.AddUnregisteredDependency(_BuilderByType.Value);
-
-            foreach (var _RequiredPackage in dependencies.m_RequiredPackages)
-                _ = this.AddRequiredPackage(_RequiredPackage);
-
-            dependencies.m_BuildersByType.Clear();
-            dependencies.m_UnregisteredBuildersByType.Clear();
-            dependencies.m_RequiredPackages.Clear();
-
-            return this;
-        }
 
         /// <summary>
         /// Informs the DependencyCollection that the external package no longer needs to be tracked.
