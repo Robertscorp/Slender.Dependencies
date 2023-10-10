@@ -19,7 +19,7 @@ namespace Slender.Dependencies
         #region - - - - - - Fields - - - - - -
 
         private readonly Dictionary<Type, DependencyBuilder> m_BuildersByType = new Dictionary<Type, DependencyBuilder>();
-        private readonly List<string> m_RequiredPackages = new List<string>();
+        private readonly List<string> m_TransitiveDependencies = new List<string>();
         private readonly Dictionary<Type, DependencyBuilder> m_UnregisteredBuildersByType = new Dictionary<Type, DependencyBuilder>();
 
         #endregion Fields
@@ -153,12 +153,12 @@ namespace Slender.Dependencies
                 else
                     this.AddUnregisteredDependency(_BuilderByType.Value);
 
-            foreach (var _RequiredPackage in dependencies.m_RequiredPackages)
-                _ = this.AddRequiredPackage(_RequiredPackage);
+            foreach (var _TransitiveDependency in dependencies.m_TransitiveDependencies)
+                _ = this.AddTransitiveDependency(_TransitiveDependency);
 
             dependencies.m_BuildersByType.Clear();
             dependencies.m_UnregisteredBuildersByType.Clear();
-            dependencies.m_RequiredPackages.Clear();
+            dependencies.m_TransitiveDependencies.Clear();
 
             return this;
         }
@@ -206,21 +206,23 @@ namespace Slender.Dependencies
         }
 
         /// <summary>
-        /// Registers an external package as a transitive dependency.
+        /// Registers a transitive dependency.
         /// </summary>
-        /// <param name="externalPackageName">The name of the external package.</param>
+        /// <param name="transitiveDependency">The name of the transitive dependency.</param>
         /// <returns>Itself.</returns>
         /// <remarks>
-        /// This method exists so that consumers can be informed that an external package is a transitive dependency.<br/>
+        /// This should only be used if the transitive dependency doesn't belong to a <see cref="DependencyCollection"/>. <br/>
+        /// Generally, this is when the transitive dependency has functionality to register itself directly into a dependency injection container.<br/>
         /// <br/>
-        /// This should only be used if the external package doesn't provide a <see cref="DependencyCollection"/>, but instead has
-        /// functionality to register itself directly into dependency injection containers.<br/>
+        /// If a transitive dependency hasn't been resolved, it will cause the validation of the dependencies to fail.<br/>
         /// <br/>
-        /// If a required package hasn't been resolved, it will cause the validation of the dependencies to fail.
+        /// To resolve a transitive dependency, use <see cref="ResolveTransitiveDependency(string)"/>.
         /// </remarks>
-        public DependencyCollection AddRequiredPackage(string externalPackageName)
+        public DependencyCollection AddTransitiveDependency(string transitiveDependency)
         {
-            this.m_RequiredPackages.Add(externalPackageName);
+            if (!this.m_TransitiveDependencies.Contains(transitiveDependency))
+                this.m_TransitiveDependencies.Add(transitiveDependency);
+
             return this;
         }
 
@@ -268,11 +270,11 @@ namespace Slender.Dependencies
         }
 
         /// <summary>
-        /// Gets all required packages that have not been resolved.
+        /// Gets all transitive dependencies that have not been resolved.
         /// </summary>
-        /// <returns>A read-only collection of all required packages that have not been resolved.</returns>
-        public ReadOnlyCollection<string> GetUnresolvedRequiredPackages()
-            => new ReadOnlyCollection<string>(this.m_RequiredPackages);
+        /// <returns>A read-only collection of all transitive dependencies that have not been resolved.</returns>
+        public ReadOnlyCollection<string> GetUnresolvedTransitiveDependencies()
+            => new ReadOnlyCollection<string>(this.m_TransitiveDependencies);
 
         IEnumerator<Dependency> IEnumerable<Dependency>.GetEnumerator()
             => this.m_BuildersByType
@@ -289,13 +291,13 @@ namespace Slender.Dependencies
             => ((IEnumerable<DependencyBuilder>)this).GetEnumerator();
 
         /// <summary>
-        /// Informs the DependencyCollection that the external package no longer needs to be tracked.
+        /// Informs the DependencyCollection that the transitive dependency has been resolved.
         /// </summary>
-        /// <param name="externalPackageName">The name of the external package.</param>
+        /// <param name="transitiveDependencyName">The name of the transitive dependency.</param>
         /// <returns>Itself.</returns>
-        public DependencyCollection ResolveRequiredPackage(string externalPackageName)
+        public DependencyCollection ResolveTransitiveDependency(string transitiveDependencyName)
         {
-            _ = this.m_RequiredPackages.Remove(externalPackageName);
+            _ = this.m_TransitiveDependencies.Remove(transitiveDependencyName);
             return this;
         }
 
@@ -352,15 +354,15 @@ namespace Slender.Dependencies
                             .AppendLine($" ({string.Join(", ", _Builder.Dependency.ImplementationTypes.Where(t => t.IsAbstract).Select(t => t.Name))})");
             }
 
-            if (this.m_RequiredPackages.Any())
+            if (this.m_TransitiveDependencies.Any())
             {
                 if (_StringBuilder.Length > 0)
                     _ = _StringBuilder.AppendLine();
 
-                _ = _StringBuilder.AppendLine("The following packages are required and have not been resolved:");
+                _ = _StringBuilder.AppendLine("The following transitive dependencies have not been resolved:");
 
-                foreach (var _RequiredPackage in this.m_RequiredPackages)
-                    _ = _StringBuilder.Append(" - ").AppendLine(_RequiredPackage);
+                foreach (var _TransitiveDependency in this.m_TransitiveDependencies)
+                    _ = _StringBuilder.Append(" - ").AppendLine(_TransitiveDependency);
             }
 
             return _StringBuilder.Length == 0 ? this : throw new Exception(_StringBuilder.ToString());
