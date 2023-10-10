@@ -293,11 +293,11 @@ namespace Slender.Dependencies
         /// <summary>
         /// Informs the DependencyCollection that the transitive dependency has been resolved.
         /// </summary>
-        /// <param name="transitiveDependencyName">The name of the transitive dependency.</param>
+        /// <param name="transitiveDependency">The name of the transitive dependency.</param>
         /// <returns>Itself.</returns>
-        public DependencyCollection ResolveTransitiveDependency(string transitiveDependencyName)
+        public DependencyCollection ResolveTransitiveDependency(string transitiveDependency)
         {
-            _ = this.m_TransitiveDependencies.Remove(transitiveDependencyName);
+            _ = this.m_TransitiveDependencies.Remove(transitiveDependency);
             return this;
         }
 
