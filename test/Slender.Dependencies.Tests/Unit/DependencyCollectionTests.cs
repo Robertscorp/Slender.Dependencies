@@ -65,7 +65,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
@@ -81,7 +81,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -105,7 +105,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -131,7 +131,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -155,7 +155,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -214,7 +214,7 @@ namespace Slender.Dependencies.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan2);
 
             // Assert
@@ -227,7 +227,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             var _Expected = new[]
             {
@@ -251,7 +251,7 @@ namespace Slender.Dependencies.Tests.Unit
         public void AddAssemblyScan_AddingEmptyScanWithDependencyThatAllowsScannedImplementations_DoesNothing()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
@@ -272,7 +272,7 @@ namespace Slender.Dependencies.Tests.Unit
             var _Collection = new DependencyCollection().AddScoped(typeof(object));
             var _Dependency = _Collection.Single();
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(object), d => _Builder = d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(object), d => _Builder = d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.AddDependencies(_Collection);
@@ -315,7 +315,7 @@ namespace Slender.Dependencies.Tests.Unit
             };
 
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Act
             _ = this.m_DependencyCollection.AddDependencies(_Collection);
@@ -446,8 +446,8 @@ namespace Slender.Dependencies.Tests.Unit
             // Act
             _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
             _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d
-                    => d.WithBehaviour(_DependencyBehaviour)
-                        .WithLifetime(DependencyLifetime.Singleton()));
+                    => d.HasBehaviour(_DependencyBehaviour)
+                        .HasLifetime(DependencyLifetime.Singleton()));
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -462,7 +462,7 @@ namespace Slender.Dependencies.Tests.Unit
             var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
 
             var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
 
@@ -480,8 +480,8 @@ namespace Slender.Dependencies.Tests.Unit
             // Act
             _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
             _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d
-                    => d.WithBehaviour(_DependencyBehaviour)
-                        .WithLifetime(DependencyLifetime.Singleton()));
+                    => d.HasBehaviour(_DependencyBehaviour)
+                        .HasLifetime(DependencyLifetime.Singleton()));
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -512,7 +512,7 @@ namespace Slender.Dependencies.Tests.Unit
 
             // Act
             _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
@@ -595,7 +595,7 @@ namespace Slender.Dependencies.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -621,7 +621,7 @@ namespace Slender.Dependencies.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -647,7 +647,7 @@ namespace Slender.Dependencies.Tests.Unit
             };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -682,7 +682,7 @@ namespace Slender.Dependencies.Tests.Unit
             _ = this.m_DependencyCollection.AddDependency(
                     typeof(IDependency),
                     DependencyLifetime.Scoped(),
-                    d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+                    d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
@@ -738,7 +738,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             // Act
@@ -754,7 +754,7 @@ namespace Slender.Dependencies.Tests.Unit
         public void ConfigureDependency_EnablingAllowScanOnDependencyWithNoPreScannedImplementations_EnablesAllowScan()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.WithBehaviour(this.m_MockDependencyBehaviour.Object));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
 
             // Act
             _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => d.ScanForImplementations());
@@ -822,8 +822,8 @@ namespace Slender.Dependencies.Tests.Unit
             // Act
             _ = this.m_DependencyCollection
                     .ConfigureDependency(typeof(IGenericDependency<object>), d
-                        => d.WithBehaviour(this.m_MockDependencyBehaviour.Object)
-                            .WithLifetime(DependencyLifetime.Singleton()));
+                        => d.HasBehaviour(this.m_MockDependencyBehaviour.Object)
+                            .HasLifetime(DependencyLifetime.Singleton()));
 
             // Assert
             _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
@@ -835,7 +835,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.AddImplementationType<DependencyImplementation>());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasImplementationType<DependencyImplementation>());
             _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
 
             var _Expected = new[]
@@ -852,7 +852,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Act
             _ = this.m_DependencyCollection
                     .ConfigureDependency(typeof(IDependency), d
-                        => d.WithBehaviour(this.m_MockDependencyBehaviour.Object)
+                        => d.HasBehaviour(this.m_MockDependencyBehaviour.Object)
                             .ScanForImplementations());
 
             // Assert
@@ -887,7 +887,7 @@ namespace Slender.Dependencies.Tests.Unit
         [Fact]
         public void GetEnumerator_OpenGenericDependencyWithImplementationType_GetsIncludedInEnumerator()
             => this.m_DependencyCollection
-                .AddScoped(typeof(IGenericDependency<>), d => d.AddImplementationType(typeof(OpenGenericImplementation<>)))
+                .AddScoped(typeof(IGenericDependency<>), d => d.HasImplementationType(typeof(OpenGenericImplementation<>)))
                 .Should()
                 .BeEquivalentTo(new[]
                 {
@@ -901,7 +901,7 @@ namespace Slender.Dependencies.Tests.Unit
         [Fact]
         public void GetEnumerator_OpenGenericDependencyWithImplementationInstance_GetsIncludedInEnumerator()
             => this.m_DependencyCollection
-                .AddSingleton(typeof(IGenericDependency<>), d => d.WithImplementationInstance(string.Empty))
+                .AddSingleton(typeof(IGenericDependency<>), d => d.HasImplementationInstance(string.Empty))
                 .Should()
                 .BeEquivalentTo(new[]
                 {
@@ -918,7 +918,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Arrange
             var _Factory = (Func<DependencyFactory, object>)(factory => string.Empty);
 
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.WithImplementationFactory(_Factory));
+            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.HasImplementationFactory(_Factory));
 
             var _Expected = new[]
             {
@@ -1029,7 +1029,7 @@ namespace Slender.Dependencies.Tests.Unit
         public void Validate_AllDependenciesAndPackagesResolved_DoesNotThrowException()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => _ = d.AddImplementationType<DependencyImplementation>());
+            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => _ = d.HasImplementationType<DependencyImplementation>());
             _ = this.m_DependencyCollection.AddRequiredPackage("Package").ResolveRequiredPackage("Package");
 
             // Act

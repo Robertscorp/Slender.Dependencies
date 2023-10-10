@@ -54,26 +54,26 @@ namespace Slender.Dependencies
         void IDependencyBehaviour.MergeDependencies(DependencyBuilder builder, Dependency dependency)
         {
             // Force the builder to take on the incoming dependency, so any custom behaviours and provided implementations will carry through the merge.
-            _ = builder.WithDependency(dependency, out dependency);
+            _ = builder.ReplaceDependency(dependency, out dependency);
 
             // Try and restore the original behaviour, if the incoming behaviour allows that.
-            _ = builder.WithBehaviour(dependency.Behaviour);
+            _ = builder.HasBehaviour(dependency.Behaviour);
 
             // Update the Lifetime before the ImplementationInstances to ensure we handle instances properly.
-            _ = builder.WithLifetime(dependency.Lifetime);
+            _ = builder.HasLifetime(dependency.Lifetime);
 
             if (dependency.AllowScannedImplementationTypes)
                 _ = builder.ScanForImplementations();
 
             if (dependency.ImplementationFactory != null)
-                _ = builder.WithImplementationFactory(dependency.ImplementationFactory);
+                _ = builder.HasImplementationFactory(dependency.ImplementationFactory);
 
             // Check if the lifetime allows instances, otherwise the builder will throw an exception.
             if (dependency.ImplementationInstance != null && builder.Dependency.Lifetime.AllowImplementationInstances)
-                _ = builder.WithImplementationInstance(dependency.ImplementationInstance);
+                _ = builder.HasImplementationInstance(dependency.ImplementationInstance);
 
             foreach (var _ImplementationType in dependency.ImplementationTypes)
-                _ = builder.AddImplementationType(_ImplementationType);
+                _ = builder.HasImplementationType(_ImplementationType);
         }
 
         void IDependencyBehaviour.UpdateBehaviour(Dependency dependency, IDependencyBehaviour behaviour)

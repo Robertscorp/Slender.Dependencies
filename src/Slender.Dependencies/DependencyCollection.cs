@@ -175,7 +175,7 @@ namespace Slender.Dependencies
         /// <remarks>
         /// If the specified <paramref name="configurationAction"/> invokes <see cref="DependencyBuilder.ScanForImplementations"/>, then any
         /// previously found implementations of the dependency will be automatically added through 
-        /// <see cref="DependencyBuilder.AddImplementationType(Type)"/> after <paramref name="configurationAction"/> is invoked.<br/>
+        /// <see cref="DependencyBuilder.HasImplementationType(Type)"/> after <paramref name="configurationAction"/> is invoked.<br/>
         /// <br/>
         /// For more information on previously found types, see <see cref="DependencyCollection.AddAssemblyScan(IAssemblyScan)"/>.
         /// </remarks>

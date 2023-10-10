@@ -15,7 +15,7 @@ namespace Slender.Dependencies
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddSingleton<TImplementation>()
-            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Singleton(), d => d.AddImplementationType<TImplementation>());
+            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Singleton(), d => d.HasImplementationType<TImplementation>());
 
         /// <summary>
         /// Registers <typeparamref name="TImplementation"/> as a singleton dependency with <paramref name="implementationInstance"/> as the implementation instance.
@@ -25,7 +25,7 @@ namespace Slender.Dependencies
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddSingleton<TImplementation>(TImplementation implementationInstance)
-            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Singleton(), d => d.WithImplementationInstance(implementationInstance));
+            => this.AddDependency(typeof(TImplementation), DependencyLifetime.Singleton(), d => d.HasImplementationInstance(implementationInstance));
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a singleton dependency with <typeparamref name="TImplementation"/> as the implementation type.
@@ -35,7 +35,7 @@ namespace Slender.Dependencies
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddSingleton<TDependency, TImplementation>() where TImplementation : TDependency
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), d => d.AddImplementationType<TImplementation>());
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), d => d.HasImplementationType<TImplementation>());
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a singleton dependency with <paramref name="implementationFactory"/> as the mechanism of providing an implementation instance.
@@ -45,7 +45,7 @@ namespace Slender.Dependencies
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddSingleton<TDependency>(Func<DependencyFactory, TDependency> implementationFactory) where TDependency : class
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), d => d.WithImplementationFactory(implementationFactory));
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), d => d.HasImplementationFactory(implementationFactory));
 
         /// <summary>
         /// Registers <typeparamref name="TDependency"/> as a singleton dependency with <paramref name="implementationInstance"/> as the implementation instance.
@@ -55,7 +55,7 @@ namespace Slender.Dependencies
         /// <returns>Itself.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="DependencyCollection.AddDependency(Type, DependencyLifetime, Action{DependencyBuilder})"/>.</remarks>
         public DependencyCollection AddSingleton<TDependency>(object implementationInstance)
-            => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), d => d.WithImplementationInstance(implementationInstance));
+            => this.AddDependency(typeof(TDependency), DependencyLifetime.Singleton(), d => d.HasImplementationInstance(implementationInstance));
 
         /// <summary>
         /// Registers the specified <paramref name="type"/> as a singleton dependency.
