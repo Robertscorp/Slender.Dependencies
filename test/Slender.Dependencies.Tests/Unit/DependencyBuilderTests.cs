@@ -55,6 +55,45 @@ namespace Slender.Dependencies.Tests.Unit
 
         #endregion HasBehaviour Tests
 
+        #region - - - - - - HasDecorator Tests - - - - - -
+
+        [Fact]
+        public void HasDecorator_NoTypeSpecified_ThrowsArgumentNullException()
+            => Record.Exception(() => this.m_Builder.HasDecorator(null))
+                .Should()
+                .BeOfType<ArgumentNullException>();
+
+        [Fact]
+        public void HasDecorator_AnyType_AddsDecoratorThroughBehaviour()
+        {
+            // Arrange
+
+            // Act
+            _ = this.m_Builder.HasDecorator(typeof(object));
+
+            // Assert
+            this.m_MockDependencyBehaviour.Verify(mock => mock.AddDecorator(this.m_Builder.Dependency, typeof(object)), Times.Once());
+            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void HasDecorator_SameDecoratorAddedMultipleTimes_OnlyAddsDecoratorOnce()
+        {
+            // Arrange
+            _ = this.m_MockDependencyBehaviour
+                    .Setup(mock => mock.AddDecorator(It.IsAny<Dependency>(), It.IsAny<Type>()))
+                    .Callback((Dependency d, Type t) => d.Decorators.Add(t));
+
+            // Act
+            _ = this.m_Builder.HasDecorator(typeof(object));
+            _ = this.m_Builder.HasDecorator(typeof(object));
+
+            // Assert
+            _ = this.m_Builder.Dependency.Decorators.Should().BeEquivalentTo(new[] { typeof(object) });
+        }
+
+        #endregion HasDecorator Tests
+
         #region - - - - - - HasImplementationFactory Tests - - - - - -
 
         [Fact]
@@ -277,6 +316,7 @@ namespace Slender.Dependencies.Tests.Unit
             {
                 AllowScannedImplementationTypes = true,
                 Behaviour = this.m_MockDependencyBehaviour.Object,
+                Decorators = new List<Type> { typeof(Decorator) },
                 ImplementationFactory = factory => string.Empty,
                 ImplementationInstance = string.Empty,
                 ImplementationTypes = new List<Type> { typeof(IDependency) },

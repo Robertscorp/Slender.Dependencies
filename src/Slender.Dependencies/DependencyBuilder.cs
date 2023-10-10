@@ -61,6 +61,25 @@ namespace Slender.Dependencies
         }
 
         /// <summary>
+        /// Attempts to add <paramref name="decoratorType"/> as a decorator to the dependency.
+        /// </summary>
+        /// <param name="decoratorType">The type of decorator.</param>
+        /// <returns>Itself.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="decoratorType"/> is null.</exception>
+        /// <remarks>
+        /// The behaviour of the dependency may be implemented to disallow the change.
+        /// </remarks>
+        public DependencyBuilder HasDecorator(Type decoratorType)
+        {
+            if (decoratorType is null) throw new ArgumentNullException(nameof(decoratorType));
+
+            if (!this.Dependency.Decorators.Contains(decoratorType))
+                this.Dependency.Behaviour.AddDecorator(this.Dependency, decoratorType);
+
+            return this;
+        }
+
+        /// <summary>
         /// Attempts to set the implementation factory of the dependency.
         /// </summary>
         /// <param name="implementationFactory">A factory which produces an instance of the dependency.</param>
@@ -185,10 +204,12 @@ namespace Slender.Dependencies
                 Behaviour = newDependency.Behaviour,
                 ImplementationFactory = newDependency.ImplementationFactory,
                 ImplementationInstance = newDependency.ImplementationInstance,
-                ImplementationTypes = newDependency.ImplementationTypes,
                 Lifetime = newDependency.Lifetime,
                 LinkedDependency = _LinkedDependency
             };
+
+            this.Dependency.Decorators.AddRange(newDependency.Decorators);
+            this.Dependency.ImplementationTypes.AddRange(newDependency.ImplementationTypes);
 
             return this;
         }

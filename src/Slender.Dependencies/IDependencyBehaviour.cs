@@ -12,6 +12,13 @@ namespace Slender.Dependencies
         #region - - - - - - Methods - - - - - -
 
         /// <summary>
+        /// Adds a decorator to the specified dependency.
+        /// </summary>
+        /// <param name="dependency">The dependency to update.</param>
+        /// <param name="decorator">The type of decorator.</param>
+        void AddDecorator(Dependency dependency, Type decorator);
+
+        /// <summary>
         /// Adds an implementation type to the specified dependency.
         /// </summary>
         /// <param name="dependency">The dependency to update.</param>

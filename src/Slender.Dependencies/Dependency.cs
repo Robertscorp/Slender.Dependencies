@@ -50,6 +50,11 @@ namespace Slender.Dependencies
         }
 
         /// <summary>
+        /// A list of decorators for the dependency.
+        /// </summary>
+        public List<Type> Decorators { get; set; } = new List<Type>();
+
+        /// <summary>
         /// A factory which produces an instance of the dependency.
         /// </summary>
         public Func<DependencyFactory, object> ImplementationFactory { get; set; }

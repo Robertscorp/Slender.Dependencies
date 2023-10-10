@@ -43,6 +43,9 @@ namespace Slender.Dependencies
                 dependency.ImplementationInstance == null &&
                 (!dependency.ImplementationTypes.Any() || (this.m_AllowMultipleImplementationTypes && isImplementationType));
 
+        void IDependencyBehaviour.AddDecorator(Dependency dependency, Type decorator)
+            => dependency.Decorators.Add(decorator);
+
         void IDependencyBehaviour.AddImplementationType(Dependency dependency, Type type)
         {
             if (this.CanRegisterImplementation(dependency, true)) dependency.ImplementationTypes.Add(type);
@@ -71,6 +74,9 @@ namespace Slender.Dependencies
             // Check if the lifetime allows instances, otherwise the builder will throw an exception.
             if (dependency.ImplementationInstance != null && builder.Dependency.Lifetime.AllowImplementationInstances)
                 _ = builder.HasImplementationInstance(dependency.ImplementationInstance);
+
+            foreach (var _Decorator in dependency.Decorators)
+                _ = builder.HasDecorator(_Decorator);
 
             foreach (var _ImplementationType in dependency.ImplementationTypes)
                 _ = builder.HasImplementationType(_ImplementationType);

@@ -1113,6 +1113,8 @@ namespace Slender.Dependencies.Tests.Unit
 
     public class ClosedGenericImplementation2 : IGenericDependency<object> { }
 
+    public class Decorator : IDependency { }
+
     public class DependencyImplementation : IDependency { }
 
     public class DependencyImplementation2 : IDependency { }
