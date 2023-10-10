@@ -347,20 +347,20 @@ namespace Slender.Dependencies.Tests.Unit
         }
 
         [Fact]
-        public void AddDependencies_AddingRequiredPackages_AddsIncomingRequiredPackages()
+        public void AddDependencies_BothCollectionsHaveTransitiveDependencies_AddsUniqueTransitiveDependencies()
         {
             // Arrange
-            var _DependencyCollection = new DependencyCollection().AddRequiredPackage("PackageA").AddRequiredPackage("PackageB");
+            var _DependencyCollection = new DependencyCollection().AddTransitiveDependency("DependencyA").AddTransitiveDependency("DependencyB");
 
-            _ = this.m_DependencyCollection.AddRequiredPackage("PackageA").AddRequiredPackage("PackageC");
+            _ = this.m_DependencyCollection.AddTransitiveDependency("DependencyA").AddTransitiveDependency("DependencyC");
 
-            var _Expected = new[] { "PackageA", "PackageC", "PackageA", "PackageB" };
+            var _Expected = new[] { "DependencyA", "DependencyC", "DependencyB" };
 
             // Act
             _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
 
             // Assert
-            _ = this.m_DependencyCollection.GetUnresolvedRequiredPackages().Should().BeEquivalentTo(_Expected);
+            _ = this.m_DependencyCollection.GetUnresolvedTransitiveDependencies().Should().BeEquivalentTo(_Expected);
         }
 
         [Fact]
@@ -937,24 +937,24 @@ namespace Slender.Dependencies.Tests.Unit
 
         #endregion GetEnumerator Tests
 
-        #region - - - - - - GetUnresolvedRequiredPackages Tests - - - - - -
+        #region - - - - - - GetUnresolvedTransitiveDependencies Tests - - - - - -
 
         [Fact]
-        public void GetUnresolvedRequiredPackages_AnyRequest_ReturnsAllUnresolvedRequiredPackages()
+        public void GetUnresolvedTransitiveDependencies_AnyRequest_ReturnsAllUnresolvedTransitiveDependencies()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddRequiredPackage("PackageA");
+            _ = this.m_DependencyCollection.AddTransitiveDependency("DependencyA");
 
-            var _Expected = new[] { "PackageA" };
+            var _Expected = new[] { "DependencyA" };
 
             // Act
-            var _Actual = this.m_DependencyCollection.GetUnresolvedRequiredPackages();
+            var _Actual = this.m_DependencyCollection.GetUnresolvedTransitiveDependencies();
 
             // Assert
             _ = _Actual.Should().BeEquivalentTo(_Expected);
         }
 
-        #endregion GetUnresolvedRequiredPackages Tests
+        #endregion GetUnresolvedTransitiveDependencies Tests
 
         #region - - - - - - ScanForUnregisteredDependencies Tests - - - - - -
 
@@ -1026,11 +1026,11 @@ namespace Slender.Dependencies.Tests.Unit
         #region - - - - - - Validate Tests - - - - - -
 
         [Fact]
-        public void Validate_AllDependenciesAndPackagesResolved_DoesNotThrowException()
+        public void Validate_AllDependenciesResolved_DoesNotThrowException()
         {
             // Arrange
             _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => _ = d.HasImplementationType<DependencyImplementation>());
-            _ = this.m_DependencyCollection.AddRequiredPackage("Package").ResolveRequiredPackage("Package");
+            _ = this.m_DependencyCollection.AddTransitiveDependency("Dependency").ResolveTransitiveDependency("Dependency");
 
             // Act
             var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
@@ -1092,11 +1092,11 @@ namespace Slender.Dependencies.Tests.Unit
         }
 
         [Fact]
-        public void Validate_NotAllDependenciesAndPackagesResolved_ThrowsException()
+        public void Validate_NotAllDependenciesResolved_ThrowsException()
         {
             // Arrange
             _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => { });
-            _ = this.m_DependencyCollection.AddRequiredPackage("Package");
+            _ = this.m_DependencyCollection.AddTransitiveDependency("Dependency");
 
             // Act
             var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
