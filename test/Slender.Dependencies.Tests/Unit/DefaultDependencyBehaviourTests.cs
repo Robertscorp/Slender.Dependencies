@@ -48,6 +48,25 @@ namespace Slender.Dependencies.Tests.Unit
 
         #endregion Properties
 
+        #region - - - - - - AddDecorator Tests - - - - - -
+
+        [Fact]
+        public void AddDecorator_AnyDecorator_AddsDecoratorToDependency()
+        {
+            // Arrange
+            var _Dependency = Dependency_Empty;
+            var _Expected = Dependency_Empty;
+            _Expected.Decorators.Add(typeof(object));
+
+            // Act
+            _Dependency.Behaviour.AddDecorator(_Dependency, typeof(object));
+
+            // Assert
+            _ = _Dependency.Should().BeEquivalentTo(_Dependency);
+        }
+
+        #endregion AddDecorator Tests
+
         #region - - - - - - AddImplementationType Tests - - - - - -
 
         [Theory]
@@ -107,6 +126,7 @@ namespace Slender.Dependencies.Tests.Unit
             var _Builder = new DependencyBuilder(typeof(object));
             _Builder.Dependency.AllowScannedImplementationTypes = true;
             _Builder.Dependency.Behaviour = DependencyBehaviour_MultipleTypes;
+            _Builder.Dependency.Decorators = new List<Type> { typeof(int), typeof(decimal) };
             _Builder.Dependency.ImplementationFactory = factory => string.Empty;
             _Builder.Dependency.ImplementationInstance = string.Empty;
             _Builder.Dependency.ImplementationTypes = new List<Type> { typeof(object), typeof(string) };
@@ -117,6 +137,7 @@ namespace Slender.Dependencies.Tests.Unit
             var _Dependency = new Dependency(typeof(object))
             {
                 Behaviour = _MockDependencyBehaviour.Object,
+                Decorators = new List<Type> { typeof(int), typeof(float) },
                 ImplementationTypes = new List<Type> { typeof(object), typeof(int) },
                 Lifetime = TestDependencyLifetime.Instance(true)
             };
@@ -127,6 +148,7 @@ namespace Slender.Dependencies.Tests.Unit
             // Assert
             _ = _Builder.Dependency.Should().BeEquivalentTo(_Dependency);
 
+            _MockDependencyBehaviour.Verify(mock => mock.AddDecorator(_Builder.Dependency, typeof(decimal)));
             _MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(_Builder.Dependency, typeof(string)));
             _MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(_Builder.Dependency));
             _MockDependencyBehaviour.Verify(mock => mock.UpdateBehaviour(_Builder.Dependency, _InitialDependency.Behaviour));
