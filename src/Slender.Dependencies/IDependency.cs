@@ -24,6 +24,12 @@ namespace Slender.Dependencies
         void AddImplementation(object implementation);
 
         /// <summary>
+        /// Adds this dependency to the specified <paramref name="dependency"/>.
+        /// </summary>
+        /// <param name="dependency">The <see cref="IDependency"/> to add this dependency to.</param>
+        void AddToDependency(IDependency dependency);
+
+        /// <summary>
         /// Gets the type of the dependency.
         /// </summary>
         /// <returns>The type of the dependency.</returns>
