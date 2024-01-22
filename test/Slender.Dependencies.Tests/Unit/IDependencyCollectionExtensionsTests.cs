@@ -25,6 +25,7 @@ namespace Slender.Dependencies.Tests.Unit
         private readonly TestDependencyCollection m_DependencyCollection = new();
         private readonly DependencyScanningOptions m_DependencyScanningOptions;
         private readonly Func<DependencyFactory, IDependency> m_ImplementationFactory = new Mock<Func<DependencyFactory, IDependency>>().Object;
+        private readonly ServiceImplementation m_ImplementationInstance = new();
 
         #endregion Fields
 
