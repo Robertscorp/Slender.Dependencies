@@ -1,5 +1,4 @@
-﻿using Slender.Dependencies.Legacy;
-using System;
+﻿using System;
 
 namespace Slender.Dependencies
 {
