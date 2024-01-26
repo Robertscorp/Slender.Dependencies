@@ -1,14 +1,12 @@
 ﻿using FluentAssertions;
-using Moq;
 using Slender.Dependencies.Options;
 using Slender.Dependencies.Tests.Support;
-using System;
 using Xunit;
 
 namespace Slender.Dependencies.Tests.Unit.Options
 {
 
-    public class DependencyMergeStrategyTests
+    public class DependencyMergeResolutionStrategiesTests
     {
 
         #region - - - - - - Fields - - - - - -
@@ -18,30 +16,12 @@ namespace Slender.Dependencies.Tests.Unit.Options
 
         #endregion Fields
 
-        #region - - - - - - Custom Tests - - - - - -
-
-        [Fact]
-        public void Custom_AnyMergeFunction_AssignsSpecifiedMergeFunction()
-        {
-            // Arrange
-            var _MergeFunction = new Mock<Func<IDependency, IDependency, IDependency>>().Object;
-
-            // Act
-            var _Strategy = DependencyMergeStrategy.Custom(_MergeFunction);
-
-            // Assert
-            _ = _Strategy.MergeFunction.Should().Be(_MergeFunction);
-        }
-
-        #endregion Custom Tests
-
         #region - - - - - - IgnoreIncoming Tests - - - - - -
 
         [Fact]
         public void IgnoreIncoming_MergingExistingAndIncomingDependency_ReturnsExistingDependencyUnchanged()
-            => DependencyMergeStrategy
-                .IgnoreIncoming()
-                .MergeFunction
+            => DependencyMergeResolutionStrategies
+                .IgnoreIncoming
                 .Invoke(this.m_ExistingDependency, this.m_IncomingDependency)
                 .Should()
                 .Be(this.m_ExistingDependency)
@@ -57,9 +37,8 @@ namespace Slender.Dependencies.Tests.Unit.Options
 
         [Fact]
         public void MergeExistingIntoIncoming_MergingExistingAndIncomingDependency_ReturnsIncomingDependencyWithExistingImplementationAdded()
-            => DependencyMergeStrategy
-                .MergeExistingIntoIncoming()
-                .MergeFunction
+            => DependencyMergeResolutionStrategies
+                .MergeExistingIntoIncoming
                 .Invoke(this.m_ExistingDependency, this.m_IncomingDependency)
                 .Should()
                 .Be(this.m_IncomingDependency)
@@ -75,9 +54,8 @@ namespace Slender.Dependencies.Tests.Unit.Options
 
         [Fact]
         public void MergeIncomingIntoExisting_MergingExistingAndIncomingDependency_ReturnsExistingDependencyWithIncomingImplementationAdded()
-            => DependencyMergeStrategy
-                .MergeIncomingIntoExisting()
-                .MergeFunction
+            => DependencyMergeResolutionStrategies
+                .MergeIncomingIntoExisting
                 .Invoke(this.m_ExistingDependency, this.m_IncomingDependency)
                 .Should()
                 .Be(this.m_ExistingDependency)
@@ -93,9 +71,8 @@ namespace Slender.Dependencies.Tests.Unit.Options
 
         [Fact]
         public void ReplaceExisting_MergingExistingAndIncomingDependency_ReturnsIncomingDependencyUnchanged()
-            => DependencyMergeStrategy
-                .ReplaceExisting()
-                .MergeFunction
+            => DependencyMergeResolutionStrategies
+                .ReplaceExisting
                 .Invoke(this.m_ExistingDependency, this.m_IncomingDependency)
                 .Should()
                 .Be(this.m_IncomingDependency)
