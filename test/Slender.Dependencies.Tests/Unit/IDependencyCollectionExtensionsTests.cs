@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Moq;
 using Slender.AssemblyScanner;
+using Slender.Dependencies.Options;
 using Slender.Dependencies.Tests.Support;
 using System;
 using System.Collections.Generic;

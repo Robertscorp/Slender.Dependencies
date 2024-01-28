@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Slender.Dependencies
+namespace Slender.Dependencies.Options
 {
 
     /// <summary>
