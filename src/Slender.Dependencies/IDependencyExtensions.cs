@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Slender.Dependencies.Internals;
+using System;
 
 namespace Slender.Dependencies
 {
@@ -116,6 +117,9 @@ namespace Slender.Dependencies
 
             return dependency;
         }
+
+        internal static ReadOnlyDependency Read(this IDependency dependency)
+            => new ReadOnlyDependency(dependency ?? throw new ArgumentNullException(nameof(dependency)));
 
         #endregion Methods
 
