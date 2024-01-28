@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Slender.Dependencies.Options;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,17 +7,12 @@ using System.Text;
 namespace Slender.Dependencies.Internals
 {
 
-    internal class ValidationCollection : IDependencyCollection, IDependencyCollectionValidationOptions
+    internal class ValidationCollection : IDependencyCollection
     {
 
         #region - - - - - - Fields - - - - - -
 
         private readonly List<ValidationDependency> m_Dependencies = new List<ValidationDependency>();
-        private readonly List<Type> m_TransitiveDependencies = new List<Type>();
-
-        private bool m_IgnoreInvalidImplementations;
-        private bool m_IgnoreMissingImplementations;
-        private bool m_IgnoreMissingLifetimes;
 
         #endregion Fields
 
@@ -27,6 +23,12 @@ namespace Slender.Dependencies.Internals
 
         #endregion Constructors
 
+        #region - - - - - - Properties - - - - - -
+
+        internal DependencyCollectionValidationOptions Options { get; } = new DependencyCollectionValidationOptions();
+
+        #endregion Properties
+
         #region - - - - - - Methods - - - - - -
 
         public void AddDependency(IDependency dependency)
@@ -34,35 +36,12 @@ namespace Slender.Dependencies.Internals
 
         public void AddTransitiveDependency(Type transitiveDependencyType)
         {
-            if (!this.m_TransitiveDependencies.Contains(transitiveDependencyType))
-                this.m_TransitiveDependencies.Add(transitiveDependencyType);
+            if (!this.Options.TransitiveDependencies.Contains(transitiveDependencyType))
+                this.Options.TransitiveDependencies.Add(transitiveDependencyType);
         }
 
         IDependency IDependencyCollection.AddDependency(Type dependencyType)
             => throw new NotImplementedException();
-
-        IDependencyCollectionValidationOptions IDependencyCollectionValidationOptions.IgnoreInvalidImplementations()
-        {
-            this.m_IgnoreInvalidImplementations = true;
-            return this;
-        }
-
-        IDependencyCollectionValidationOptions IDependencyCollectionValidationOptions.IgnoreMissingImplementations()
-        {
-            this.m_IgnoreMissingImplementations = true;
-            return this;
-        }
-
-        IDependencyCollectionValidationOptions IDependencyCollectionValidationOptions.IgnoreMissingLifetimes()
-        {
-            this.m_IgnoreMissingLifetimes = true;
-            return this;
-        }
-
-        IDependencyCollectionValidationOptions IDependencyCollectionValidationOptions.ResolveTransitiveDependency(Type transitiveDependencyType)
-            => this.m_TransitiveDependencies.Remove(transitiveDependencyType)
-                ? this
-                : throw new InvalidOperationException($"'{transitiveDependencyType.Name}' is not a transitive dependency.");
 
         void IDependencyCollection.AddToDependencyCollection(IDependencyCollection dependencies)
             => throw new NotImplementedException();
@@ -74,7 +53,7 @@ namespace Slender.Dependencies.Internals
         {
             var _StringBuilder = new StringBuilder(64);
 
-            if (!this.m_IgnoreMissingLifetimes)
+            if (!this.Options.IgnoreMissingLifetimes)
             {
                 var _DependenciesWithoutLifetime = this.m_Dependencies.Where(d => d.HasNoLifetime()).ToList();
                 if (_DependenciesWithoutLifetime.Any())
@@ -86,7 +65,7 @@ namespace Slender.Dependencies.Internals
                 }
             }
 
-            if (!this.m_IgnoreMissingImplementations)
+            if (!this.Options.IgnoreMissingImplementations)
             {
                 var _DependenciesWithoutImplementations = this.m_Dependencies.Where(d => d.HasNoImplementations()).ToList();
                 if (_DependenciesWithoutImplementations.Any())
@@ -101,7 +80,7 @@ namespace Slender.Dependencies.Internals
                 }
             }
 
-            if (!this.m_IgnoreInvalidImplementations)
+            if (!this.Options.IgnoreInvalidImplementations)
             {
                 var _DependenciesWithInvalidImplementations = this.m_Dependencies.Where(d => d.HasInvalidImplementations()).ToList();
                 if (_DependenciesWithInvalidImplementations.Any())
@@ -116,14 +95,14 @@ namespace Slender.Dependencies.Internals
                 }
             }
 
-            if (this.m_TransitiveDependencies.Any())
+            if (this.Options.TransitiveDependencies.Any())
             {
                 if (_StringBuilder.Length > 0)
                     _ = _StringBuilder.AppendLine();
 
                 _ = _StringBuilder.AppendLine("The following transitive dependencies have not been resolved:");
 
-                foreach (var _TransitiveDependency in this.m_TransitiveDependencies)
+                foreach (var _TransitiveDependency in this.Options.TransitiveDependencies)
                     _ = _StringBuilder.Append(" - ").AppendLine(_TransitiveDependency.Name);
             }
 

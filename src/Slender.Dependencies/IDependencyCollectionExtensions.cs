@@ -1,5 +1,6 @@
 ﻿using Slender.AssemblyScanner;
 using Slender.Dependencies.Internals;
+using Slender.Dependencies.Options;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -207,7 +208,7 @@ namespace Slender.Dependencies
 
             var _ValidationCollection = new ValidationCollection(dependencies);
 
-            configurationAction?.Invoke(_ValidationCollection);
+            configurationAction?.Invoke(_ValidationCollection.Options);
 
             _ValidationCollection.ThrowOnValidationFailure();
 
