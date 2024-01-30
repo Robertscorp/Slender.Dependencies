@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Slender.Dependencies.Internals;
+using Slender.Dependencies.Tests.Support;
 using System;
 using System.Collections.Generic;
 using Xunit;
