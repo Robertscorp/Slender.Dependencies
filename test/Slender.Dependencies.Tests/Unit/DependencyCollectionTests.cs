@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
 using Moq;
-using Slender.AssemblyScanner;
+using Slender.Dependencies.Options;
+using Slender.Dependencies.Tests.Support;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Slender.Dependencies.Tests.Unit
@@ -14,14 +13,14 @@ namespace Slender.Dependencies.Tests.Unit
 
         #region - - - - - - Fields - - - - - -
 
-        private readonly Mock<IDependencyBehaviour> m_MockDependencyBehaviour = new();
-        private readonly Mock<Action<DependencyCollection, Type>> m_MockScanningBehaviour = new();
+        private readonly Mock<DependencyExistsResolutionStrategy> m_MockDependencyExistsStrategy = new();
+        private readonly Mock<DependencyMergeResolutionStrategy> m_MockDependencyMergeStrategy = new();
+        private readonly Mock<DependencyProvider> m_MockDependencyProvider = new();
 
-        private readonly IAssemblyScan m_AssemblyScan;
-        private readonly IAssemblyScan m_AssemblyScan2;
-        private readonly List<Type> m_AssemblyTypes = new();
-        private readonly List<Type> m_AssemblyTypes2 = new();
-        private readonly DependencyCollection m_DependencyCollection = new();
+        private readonly DependencyCollection m_DependencyCollection;
+        private readonly TestDependency m_ExistingClosedGenericDependency = new(typeof(IGenericService<object>));
+        private readonly TestDependency m_ExistingDependency = new(typeof(IService));
+        private readonly TestDependency m_ExistingOpenGenericDependency = new(typeof(IGenericService<>));
 
         #endregion Fields
 
@@ -29,1102 +28,383 @@ namespace Slender.Dependencies.Tests.Unit
 
         public DependencyCollectionTests()
         {
-            var _MockAssemblyScan = new Mock<IAssemblyScan>();
-            _ = _MockAssemblyScan
-                    .Setup(mock => mock.Types)
-                    .Returns(() => this.m_AssemblyTypes.ToArray());
+            this.m_DependencyCollection = new(options =>
+                options.HasDependencyProvider(this.m_MockDependencyProvider.Object)
+                    .HasResolutionStrategyForExistingDependency(this.m_MockDependencyExistsStrategy.Object)
+                    .HasResolutionStrategyForMergingDependencies(this.m_MockDependencyMergeStrategy.Object));
 
-            var _MockAssemblyScan2 = new Mock<IAssemblyScan>();
-            _ = _MockAssemblyScan2
-                    .Setup(mock => mock.Types)
-                    .Returns(() => this.m_AssemblyTypes2.ToArray());
+            this.m_DependencyCollection.AddDependency(this.m_ExistingClosedGenericDependency);
+            this.m_DependencyCollection.AddDependency(this.m_ExistingDependency);
+            this.m_DependencyCollection.AddDependency(this.m_ExistingOpenGenericDependency);
 
-            _ = this.m_MockDependencyBehaviour
-                    .Setup(mock => mock.AddImplementationType(It.IsAny<Dependency>(), It.IsAny<Type>()))
-                    .Callback((Dependency d, Type t) => d.ImplementationTypes.Add(t));
+            _ = this.m_MockDependencyExistsStrategy
+                    .Setup(mock => mock.Invoke(It.IsAny<DependencyProvider>(), It.IsAny<IDependency>(), It.IsAny<Type>()))
+                    .Returns((DependencyProvider dp, IDependency d, Type t) => dp.Invoke(t));
 
-            _ = this.m_MockDependencyBehaviour
-                    .Setup(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()))
-                    .Callback((Dependency dependency) => dependency.AllowScannedImplementationTypes = true);
+            _ = this.m_MockDependencyMergeStrategy
+                    .Setup(mock => mock.Invoke(It.IsAny<IDependency>(), It.IsAny<IDependency>()))
+                    .Returns((IDependency existing, IDependency incoming) => incoming);
 
-            _ = this.m_MockDependencyBehaviour
-                    .Setup(mock => mock.UpdateLifetime(It.IsAny<Dependency>(), It.IsAny<DependencyLifetime>()))
-                    .Callback((Dependency d, DependencyLifetime l) => d.Lifetime = l);
-
-            this.m_AssemblyScan = _MockAssemblyScan.Object;
-            this.m_AssemblyScan2 = _MockAssemblyScan2.Object;
+            _ = this.m_MockDependencyProvider
+                    .Setup(mock => mock.Invoke(It.IsAny<Type>()))
+                    .Returns((Type t) => new TestDependency(t));
         }
 
         #endregion Constructors
 
-        #region - - - - - - AddAssemblyScan Tests - - - - - -
+        #region - - - - - - AddDependency(IDependency) Tests - - - - - -
 
         [Fact]
-        public void AddAssemblyScan_AddingScanWithDependencyThatAllowsScannedImplementations_ScannedImplementationsAdded()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
-            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingClosedGenericImplementationWithClosedGenericDependencyWithoutScanning_DoesNotAddImplementationToDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingClosedGenericImplementationWithClosedGenericDependencyWithScanning_AddsImplementationToDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingClosedGenericImplementationWithOpenGenericDependencyWithoutScanning_DoesNotRegisterClosedGenericDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<>))
-                {
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingClosedGenericImplementationWithOpenGenericDependencyWithScanning_RegistersClosedGenericDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingOpenGenericClass_DoesNothing()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(OtherOpenGenericImplementation<>));
-
-            var _Expected = Array.Empty<Type>();
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingClosedGenericImplementationsOverMultipleScansWithOpenGenericDependency_RegistersClosedGenericDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-            this.m_AssemblyTypes2.Add(typeof(ClosedGenericImplementation2));
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>
-                    {
-                        typeof(ClosedGenericImplementation),
-                        typeof(ClosedGenericImplementation2)
-                    },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan2);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingOpenGenericImplementationWithOpenGenericDependency_RegistersImplementationAgainstOpenGenericDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddAssemblyScan_AddingEmptyScanWithDependencyThatAllowsScannedImplementations_DoesNothing()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations().HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            // Act
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Assert
-            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
-        }
-
-        #endregion AddAssemblyScan Tests
-
-        #region - - - - - - AddDependencies Tests - - - - - -
-
-        [Fact]
-        public void AddDependencies_AddingWithExistingDependency_UsesExistingBehaviourToMerge()
-        {
-            // Arrange
-            var _Builder = default(DependencyBuilder);
-            var _Collection = new DependencyCollection().AddScoped(typeof(object));
-            var _Dependency = _Collection.Single();
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(object), d => _Builder = d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_Collection);
-
-            // Assert
-            this.m_MockDependencyBehaviour.Verify(mock => mock.MergeDependencies(_Builder, _Dependency), Times.Once());
-            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public void AddDependencies_AddingWithNoExistingDependency_AddsIncomingDependency()
-        {
-            // Arrange
-            var _Collection = new DependencyCollection().AddScoped(typeof(object));
-            var _Expected = new[] { new Dependency(typeof(object)) { Lifetime = DependencyLifetime.Scoped() } };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_Collection);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_AddingWithExistingImplementations_AddsIncomingImplementationsToExistingDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
-            this.m_AssemblyTypes2.Add(typeof(DependencyImplementation2));
-
-            var _Collection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan2);
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IDependency))
-                {
-                    AllowScannedImplementationTypes = true,
-                    ImplementationTypes = new List<Type>() { typeof(DependencyImplementation), typeof(DependencyImplementation2) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_Collection);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
-        }
-
-        [Fact]
-        public void AddDependencies_AddingWithNoExistingImplementations_AddsIncomingImplementations()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(DependencyImplementation2));
-
-            var _Collection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            var _Expected = new Dependency(typeof(IDependency))
-            {
-                AllowScannedImplementationTypes = true,
-                ImplementationTypes = new List<Type>() { typeof(DependencyImplementation2) },
-                Lifetime = DependencyLifetime.Scoped()
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_Collection);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations());
-
-            // Assert
-            _ = this.m_DependencyCollection.Single().Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_BothCollectionsHaveTransitiveDependencies_AddsUniqueTransitiveDependencies()
-        {
-            // Arrange
-            var _DependencyCollection = new DependencyCollection().AddTransitiveDependency("DependencyA").AddTransitiveDependency("DependencyB");
-
-            _ = this.m_DependencyCollection.AddTransitiveDependency("DependencyA").AddTransitiveDependency("DependencyC");
-
-            var _Expected = new[] { "DependencyA", "DependencyC", "DependencyB" };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-
-            // Assert
-            _ = this.m_DependencyCollection.GetUnresolvedTransitiveDependencies().Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_AddOpenGenericDependencyIntoUnregisteredClosedGenericDependency_RegistersClosedGenericDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            var _DependencyCollection = new DependencyCollection().AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_AddUnregisteredClosedGenericDependencyIntoOpenGenericDependency_RegistersClosedGenericDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_AddAutoRegisteredClosedGenericDependencyIntoManuallyRegisteredDependency_ClosedGenericDependencyRemainsUnlinkedFromOpenGenericDependencyBehaviour()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
-
-            var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.ScanForImplementations());
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d
-                    => d.HasBehaviour(_DependencyBehaviour)
-                        .HasLifetime(DependencyLifetime.Singleton()));
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_AddManuallyRegisteredDependencyIntoAutoRegisteredClosedGenericDependency_ClosedGenericDependencyNoLongerLinkedToOpenGenericDependencyBehaviour()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
-
-            var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan);
-            _ = _DependencyCollection.AddScoped(typeof(IGenericDependency<object>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d
-                    => d.HasBehaviour(_DependencyBehaviour)
-                        .HasLifetime(DependencyLifetime.Singleton()));
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
-        }
-
-        [Fact]
-        public void AddDependencies_AddIncomingUnregisteredDependencyIntoExistingUnregisteredDependency_InsertsIncomingImplementationTypesIntoStartOfImplementationTypesOfExistingUnregisteredDependency()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation2));
-            this.m_AssemblyTypes2.Add(typeof(ClosedGenericImplementation));
-
-            var _DependencyBehaviour = new Mock<IDependencyBehaviour>().Object;
-            var _DependencyCollection = new DependencyCollection().AddAssemblyScan(this.m_AssemblyScan2);
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation), typeof(ClosedGenericImplementation2) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependencies(_DependencyCollection);
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
-        }
-
-        #endregion AddDependencies Tests
-
-        #region - - - - - - AddDependency Tests - - - - - -
-
-        [Fact]
-        public void AddDependency_NotSpecifyingDependencyType_ThrowsArgumentNullException()
+        public void AddDependency_IDependency_NotSpecifyingDependency_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.AddDependency(null, DependencyLifetime.Scoped(), d => { }))
+                .Exception(() => this.m_DependencyCollection.AddDependency(dependency: null))
                 .Should()
                 .BeOfType<ArgumentNullException>();
 
         [Fact]
-        public void AddDependency_NotSpecifyingLifetime_ThrowsArgumentNullException()
+        public void AddDependency_IDependency_AddingNewDependency_AddsNewDependencyWithoutInvokingMergeStrategy()
+        {
+            // Arrange
+            var _Dependency = new TestDependency(typeof(IService2));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _Dependency, this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency } };
+
+            // Act
+            this.m_DependencyCollection.AddDependency(_Dependency);
+
+            // Assert
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyMergeStrategy.Verify(mock => mock.Invoke(It.IsAny<IDependency>(), It.IsAny<IDependency>()), Times.Never());
+        }
+
+        [Fact]
+        public void AddDependency_IDependency_AddingNewClosedGenericDependency_AddsNewDependencyWithoutInvokingMergeStrategy()
+        {
+            // Arrange
+            var _Dependency = new TestDependency(typeof(IGenericService<string>));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _Dependency, this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency } };
+
+            // Act
+            this.m_DependencyCollection.AddDependency(_Dependency);
+
+            // Assert
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyMergeStrategy.Verify(mock => mock.Invoke(It.IsAny<IDependency>(), It.IsAny<IDependency>()), Times.Never());
+        }
+
+        [Fact]
+        public void AddDependency_IDependency_AddingAlreadyAddedDependency_ResolvesUsingMergeStrategy()
+        {
+            // Arrange
+            var _Dependency = new TestDependency(typeof(IService));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _Dependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency } };
+
+            // Act
+            this.m_DependencyCollection.AddDependency(_Dependency);
+
+            // Assert
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyMergeStrategy.Verify(mock => mock.Invoke(this.m_ExistingDependency, _Dependency));
+        }
+
+        [Fact]
+        public void AddDependency_IDependency_AddingAlreadyAddedOpenGenericDependency_ResolvesUsingMergeStrategy()
+        {
+            // Arrange
+            var _Dependency = new TestDependency(typeof(IGenericService<>));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _Dependency, this.m_ExistingDependency, this.m_ExistingClosedGenericDependency } };
+
+            // Act
+            this.m_DependencyCollection.AddDependency(_Dependency);
+
+            // Assert
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyMergeStrategy.Verify(mock => mock.Invoke(this.m_ExistingOpenGenericDependency, _Dependency));
+        }
+
+        [Fact]
+        public void AddDependency_IDependency_AddingAlreadyAddedClosedGenericDependency_ResolvesUsingMergeStrategy()
+        {
+            // Arrange
+            var _Dependency = new TestDependency(typeof(IGenericService<object>));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _Dependency, this.m_ExistingDependency, this.m_ExistingOpenGenericDependency } };
+
+            // Act
+            this.m_DependencyCollection.AddDependency(_Dependency);
+
+            // Assert
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyMergeStrategy.Verify(mock => mock.Invoke(this.m_ExistingClosedGenericDependency, _Dependency));
+        }
+
+        #endregion AddDependency(IDependency) Tests
+
+        #region - - - - - - AddDependency(Type) Tests - - - - - -
+
+        [Fact]
+        public void AddDependency_Type_NotSpecifyingDependencyType_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.AddDependency(typeof(IDependency), null, d => { }))
+                .Exception(() => this.m_DependencyCollection.AddDependency(dependencyType: null))
                 .Should()
                 .BeOfType<ArgumentNullException>();
 
         [Fact]
-        public void AddDependency_NotSpecifyingConfigurationAction_RegistersDependency()
-            => this.m_DependencyCollection
-                .AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), null)
-                .Should()
-                .BeEquivalentTo(new[]
-                {
-                    new Dependency(typeof(IDependency)) { Lifetime = DependencyLifetime.Scoped() }
-                });
-
-        [Fact]
-        public void AddDependency_AddingAlreadyAddedDependency_ThrowsInvalidOperationException()
+        public void AddDependency_Type_AddingNewDependencyType_AddsNewDependencyWithoutInvokingExistsStrategy()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), d => { });
+            var _ExpectedDependency = new TestDependency(typeof(IService2));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _ExpectedDependency, this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency } };
 
             // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), d => { }));
+            var _Actual = this.m_DependencyCollection.AddDependency(_ExpectedDependency.DependencyType);
 
             // Assert
-            _ = _Exception.Should().BeOfType<InvalidOperationException>();
+            _ = _Actual.Should().BeEquivalentTo(_ExpectedDependency);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyExistsStrategy.Verify(mock => mock.Invoke(this.m_MockDependencyProvider.Object, this.m_ExistingDependency, _ExpectedDependency.DependencyType), Times.Never());
         }
 
         [Fact]
-        public void AddDependency_AddingAutoRegisteredClosedGenericDependency_ThrowsInvalidOperationException()
+        public void AddDependency_Type_AddingNewClosedGenericDependencyType_AddsNewDependencyWithoutInvokingExistsStrategy()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), d => d.ScanForImplementations());
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
+            var _ExpectedDependency = new TestDependency(typeof(IGenericService<string>));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _ExpectedDependency, this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency } };
 
             // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => { }));
+            var _Actual = this.m_DependencyCollection.AddDependency(_ExpectedDependency.DependencyType);
 
             // Assert
-            _ = _Exception.Should().BeOfType<InvalidOperationException>();
+            _ = _Actual.Should().BeEquivalentTo(_ExpectedDependency);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyExistsStrategy.Verify(mock => mock.Invoke(this.m_MockDependencyProvider.Object, this.m_ExistingDependency, _ExpectedDependency.DependencyType), Times.Never());
         }
 
         [Fact]
-        public void AddDependency_AddingClosedGenericDependencyWithScanning_AddsClosedGenericImplementations()
+        public void AddDependency_Type_AddingAlreadyAddedDependency_ResolvesUsingExistsStrategy()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
+            var _ExpectedDependency = new TestDependency(typeof(IService));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _ExpectedDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency } };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            var _Actual = this.m_DependencyCollection.AddDependency(typeof(IService));
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = _Actual.Should().BeEquivalentTo(_ExpectedDependency);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyExistsStrategy.Verify(mock => mock.Invoke(this.m_MockDependencyProvider.Object, this.m_ExistingDependency, _ExpectedDependency.DependencyType));
         }
 
         [Fact]
-        public void AddDependency_AddingOpenGenericDependencyWithScanning_DiscoversAndAutoRegistersClosedGenericDependencies()
+        public void AddDependency_Type_AddingAlreadyAddedOpenGenericDependency_ResolvesUsingExistsStrategy()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
+            var _ExpectedDependency = new TestDependency(typeof(IGenericService<>));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _ExpectedDependency, this.m_ExistingDependency, this.m_ExistingClosedGenericDependency } };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<>), DependencyLifetime.Scoped(), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            var _Actual = this.m_DependencyCollection.AddDependency(_ExpectedDependency.DependencyType);
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = _Actual.Should().BeEquivalentTo(_ExpectedDependency);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyExistsStrategy.Verify(mock => mock.Invoke(this.m_MockDependencyProvider.Object, this.m_ExistingOpenGenericDependency, _ExpectedDependency.DependencyType));
         }
 
         [Fact]
-        public void AddDependency_AddingUnregisteredDependency_BecomesRegisteredDependencyWithSpecifiedLifetime()
+        public void AddDependency_Type_AddingAlreadyAddedClosedGenericDependency_ResolvesUsingExistsStrategy()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
+            var _ExpectedDependency = new TestDependency(typeof(IGenericService<object>));
+            var _Expected = new TestDependencyCollection { Dependencies = new() { _ExpectedDependency, this.m_ExistingDependency, this.m_ExistingOpenGenericDependency } };
 
             // Act
-            _ = this.m_DependencyCollection.AddDependency(typeof(IGenericDependency<object>), DependencyLifetime.Scoped(), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
+            var _Actual = this.m_DependencyCollection.AddDependency(_ExpectedDependency.DependencyType);
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = _Actual.Should().BeEquivalentTo(_ExpectedDependency);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
+
+            this.m_MockDependencyExistsStrategy.Verify(mock => mock.Invoke(this.m_MockDependencyProvider.Object, this.m_ExistingClosedGenericDependency, _ExpectedDependency.DependencyType));
         }
 
-        [Fact]
-        public void AddDependency_AddingUnregisteredDependencyWithImplementationsOverMultipleAssembles_ImplementationsAddedInScanOrder()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
-            this.m_AssemblyTypes2.Add(typeof(DependencyImplementation2));
+        #endregion AddDependency(Type) Tests
 
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan2);
-
-            var _Expected = new[]
-            {
-                new Dependency(typeof(IDependency))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>()
-                    {
-                        typeof(DependencyImplementation),
-                        typeof(DependencyImplementation2)
-                    },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
-            };
-
-            // Act
-            _ = this.m_DependencyCollection.AddDependency(
-                    typeof(IDependency),
-                    DependencyLifetime.Scoped(),
-                    d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object).ScanForImplementations());
-
-            // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected, opts => opts.WithStrictOrdering());
-        }
-
-        #endregion AddDependency Tests
-
-        #region - - - - - - ConfigureDependency Tests - - - - - -
+        #region - - - - - - AddToDependencyCollection Tests - - - - - -
 
         [Fact]
-        public void ConfigureDependency_NotSpecifyingDependencyType_ThrowsArgumentNullException()
+        public void AddToDependencyCollection_NotSpecifyingDependencyCollection_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.ConfigureDependency(null, d => { }))
-                .Should().BeOfType<ArgumentNullException>();
+                .Exception(() => this.m_DependencyCollection.AddToDependencyCollection(null))
+                .Should()
+                .BeOfType<ArgumentNullException>();
 
         [Fact]
-        public void ConfigureDependency_NotSpecifyingConfigurationAction_ThrowsArgumentNullException()
+        public void AddToDependencyCollection_AnyDependencyCollection_AddsAllDependenciesAndTransitiveDependencies()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddDependency(typeof(IDependency), DependencyLifetime.Scoped(), null);
+            var _DependencyCollection = new TestDependencyCollection();
+            var _Expected = new TestDependencyCollection()
+            {
+                Dependencies = new() { this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency },
+                TransitiveDependencies = new() { typeof(ISetup), typeof(IService2) }
+            };
+
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(ISetup));
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(IService2));
 
             // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), null));
+            this.m_DependencyCollection.AddToDependencyCollection(_DependencyCollection);
 
             // Assert
-            _ = _Exception.Should().BeOfType<ArgumentNullException>();
+            _ = _DependencyCollection.Should().BeEquivalentTo(_Expected);
         }
 
+        #endregion AddToDependencyCollection Tests
+
+        #region - - - - - - AddTransitiveDependency Tests - - - - - -
+
         [Fact]
-        public void ConfigureDependency_ConfigureNeverAddedDependency_ThrowsInvalidOperationException()
+        public void AddTransitiveDependency_NotSpecifyingTransitiveDependencyType_ThrowsArgumentNullException()
             => Record
-                .Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => { }))
-                .Should().BeOfType<InvalidOperationException>();
+                .Exception(() => this.m_DependencyCollection.AddTransitiveDependency(null))
+                .Should()
+                .BeOfType<ArgumentNullException>();
 
         [Fact]
-        public void ConfigureDependency_ConfigureUnregisteredDependency_ThrowsInvalidOperationException()
+        public void AddTransitiveDependency_AddingTransitiveDependency_AddsTransitiveDependency()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(IDependency));
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => { }));
-
-            // Assert
-            _ = _Exception.Should().BeOfType<InvalidOperationException>();
-        }
-
-        [Fact]
-        public void ConfigureDependency_EnablingAllowScanOnDependencyWithPreScannedImplementations_EnablesAllowScanAndAddsImplementations()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Act
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => d.ScanForImplementations());
-
-            // Assert
-            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
-            this.m_MockDependencyBehaviour.Verify(mock => mock.AddImplementationType(It.IsAny<Dependency>(), typeof(DependencyImplementation)));
-            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public void ConfigureDependency_EnablingAllowScanOnDependencyWithNoPreScannedImplementations_EnablesAllowScan()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasBehaviour(this.m_MockDependencyBehaviour.Object));
-
-            // Act
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IDependency), d => d.ScanForImplementations());
-
-            // Assert
-            this.m_MockDependencyBehaviour.Verify(mock => mock.AllowScannedImplementationTypes(It.IsAny<Dependency>()));
-            this.m_MockDependencyBehaviour.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public void ConfigureDependency_ConfiguringOpenGenericDependencyToAllowScan_DiscoversAndAutoRegistersClosedGenericDependencies()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>));
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
+            var _Expected = new TestDependencyCollection
             {
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation)},
-                    Lifetime = DependencyLifetime.Scoped()
-                }
+                Dependencies = new() { this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency },
+                TransitiveDependencies = new() { typeof(IService) }
             };
 
             // Act
-            _ = this.m_DependencyCollection.ConfigureDependency(typeof(IGenericDependency<>), d => d.ScanForImplementations());
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(IService));
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
         }
 
         [Fact]
-        public void ConfigureDependency_ConfiguringAutoRegisteredClosedGenericDependency_NoLongerLinkedToOpenGenericBehaviour()
+        public void AddTransitiveDependency_AddingOpenGenericTransitiveDependency_AddsOpenGenericTransitiveDependency()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-            this.m_AssemblyTypes.Add(typeof(OpenGenericImplementation<>));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
+            var _Expected = new TestDependencyCollection
             {
-                new Dependency(typeof(IGenericDependency<>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
-                    Lifetime = DependencyLifetime.Scoped()
-                },
-                new Dependency(typeof(IGenericDependency<object>))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(ClosedGenericImplementation) },
-                    Lifetime = DependencyLifetime.Singleton()
-                }
+                Dependencies = new() { this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency },
+                TransitiveDependencies = new() { typeof(IGenericService<>) }
             };
 
             // Act
-            _ = this.m_DependencyCollection
-                    .ConfigureDependency(typeof(IGenericDependency<object>), d
-                        => d.HasBehaviour(this.m_MockDependencyBehaviour.Object)
-                            .HasLifetime(DependencyLifetime.Singleton()));
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(IGenericService<>));
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
         }
 
         [Fact]
-        public void ConfigureDependency_ConfiguringManuallyRegisteredDependencyToFindExistingManuallyAddedImplementation_DoesNothing()
+        public void AddTransitiveDependency_AddingClosedGenericTransitiveDependency_AddsAsOpenGenericTransitiveDependency()
         {
             // Arrange
-            this.m_AssemblyTypes.Add(typeof(DependencyImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.HasImplementationType<DependencyImplementation>());
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            var _Expected = new[]
+            var _Expected = new TestDependencyCollection
             {
-                new Dependency(typeof(IDependency))
-                {
-                    AllowScannedImplementationTypes = true,
-                    Behaviour = this.m_MockDependencyBehaviour.Object,
-                    ImplementationTypes = new List<Type>() { typeof(DependencyImplementation) },
-                    Lifetime = DependencyLifetime.Scoped()
-                }
+                Dependencies = new() { this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency },
+                TransitiveDependencies = new() { typeof(IGenericService<>) }
             };
 
             // Act
-            _ = this.m_DependencyCollection
-                    .ConfigureDependency(typeof(IDependency), d
-                        => d.HasBehaviour(this.m_MockDependencyBehaviour.Object)
-                            .ScanForImplementations());
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(IGenericService<object>));
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
         }
 
-        #endregion ConfigureDependency Tests
-
-        #region - - - - - - GetEnumerator Tests - - - - - -
-
         [Fact]
-        public void GetEnumerator_EmptyNonGenericDependency_GetsIncludedInEnumerator()
-            => this.m_DependencyCollection
-                .AddScoped(typeof(IDependency))
-                .Should()
-                .BeEquivalentTo(new[] { new Dependency(typeof(IDependency)) { Lifetime = DependencyLifetime.Scoped() } });
-
-        [Fact]
-        public void GetEnumerator_OpenGenericDependencyWithOnlyAllowScan_DoesNotGetIncludedInEnumerator()
-            => this.m_DependencyCollection
-                .AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations())
-                .Should()
-                .BeEquivalentTo(Array.Empty<Dependency>());
-
-        [Fact]
-        public void GetEnumerator_EmptyOpenGenericDependency_GetsIncludedInEnumerator()
-            => this.m_DependencyCollection
-                .AddScoped(typeof(IGenericDependency<>))
-                .Should()
-                .BeEquivalentTo(new[] { new Dependency(typeof(IGenericDependency<>)) { Lifetime = DependencyLifetime.Scoped() } });
-
-        [Fact]
-        public void GetEnumerator_OpenGenericDependencyWithImplementationType_GetsIncludedInEnumerator()
-            => this.m_DependencyCollection
-                .AddScoped(typeof(IGenericDependency<>), d => d.HasImplementationType(typeof(OpenGenericImplementation<>)))
-                .Should()
-                .BeEquivalentTo(new[]
-                {
-                    new Dependency(typeof(IGenericDependency<>))
-                    {
-                        ImplementationTypes = new List<Type>() { typeof(OpenGenericImplementation<>) },
-                        Lifetime = DependencyLifetime.Scoped()
-                    }
-                });
-
-        [Fact]
-        public void GetEnumerator_OpenGenericDependencyWithImplementationInstance_GetsIncludedInEnumerator()
-            => this.m_DependencyCollection
-                .AddSingleton(typeof(IGenericDependency<>), d => d.HasImplementationInstance(string.Empty))
-                .Should()
-                .BeEquivalentTo(new[]
-                {
-                    new Dependency(typeof(IGenericDependency<>))
-                    {
-                        ImplementationInstance = string.Empty,
-                        Lifetime = DependencyLifetime.Singleton()
-                    }
-                });
-
-        [Fact]
-        public void GetEnumerator_OpenGenericDependencyWithImplementationFactory_GetsIncludedInEnumerator()
+        public void AddTransitiveDependency_AddingAlreadyAddedTransitiveDependency_DoesNothing()
         {
             // Arrange
-            var _Factory = (Func<DependencyFactory, object>)(factory => string.Empty);
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.HasImplementationFactory(_Factory));
-
-            var _Expected = new[]
+            var _Expected = new TestDependencyCollection
             {
-                new Dependency(typeof(IGenericDependency<>))
-                {
-                    ImplementationFactory = _Factory,
-                    Lifetime = DependencyLifetime.Scoped()
-                }
+                Dependencies = new() { this.m_ExistingDependency, this.m_ExistingClosedGenericDependency, this.m_ExistingOpenGenericDependency },
+                TransitiveDependencies = new() { typeof(IService) }
             };
 
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(IService));
+
             // Act
+            this.m_DependencyCollection.AddTransitiveDependency(typeof(IService));
 
             // Assert
-            _ = this.m_DependencyCollection.Should().BeEquivalentTo(_Expected);
+            _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
         }
 
-        #endregion GetEnumerator Tests
+        #endregion AddTransitiveDependency Tests
 
-        #region - - - - - - GetUnresolvedTransitiveDependencies Tests - - - - - -
+        #region - - - - - - GetDependency Tests - - - - - -
 
         [Fact]
-        public void GetUnresolvedTransitiveDependencies_AnyRequest_ReturnsAllUnresolvedTransitiveDependencies()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddTransitiveDependency("DependencyA");
-
-            var _Expected = new[] { "DependencyA" };
-
-            // Act
-            var _Actual = this.m_DependencyCollection.GetUnresolvedTransitiveDependencies();
-
-            // Assert
-            _ = _Actual.Should().BeEquivalentTo(_Expected);
-        }
-
-        #endregion GetUnresolvedTransitiveDependencies Tests
-
-        #region - - - - - - ScanForUnregisteredDependencies Tests - - - - - -
+        public void GetDependency_NotSpecifyingDependencyType_ThrowsArgumentNullException()
+            => Record
+                .Exception(() => this.m_DependencyCollection.GetDependency(null))
+                .Should()
+                .BeOfType<ArgumentNullException>();
 
         [Fact]
-        public void ScanForUnregisteredDependencies_ManuallyRegisteredDependency_NotScanned()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => { });
-
-            // Act
-            _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
-
-            // Assert
-            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
-        }
+        public void GetDependency_DependencyIsNotRegisteredInCollection_ReturnsNull()
+            => this.m_DependencyCollection
+                .GetDependency(typeof(IDisposable))
+                .Should()
+                .BeNull();
 
         [Fact]
-        public void ScanForUnregisteredDependencies_AutomaticallyRegisteredDependency_NotScanned()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddScoped(typeof(IGenericDependency<>), d => d.ScanForImplementations());
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Act
-            _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
-
-            // Assert
-            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
-        }
+        public void GetDependency_OpenGenericDependencyIsNotRegisteredInCollection_ReturnsNull()
+            => this.m_DependencyCollection
+                .GetDependency(typeof(IEquatable<>))
+                .Should()
+                .BeNull();
 
         [Fact]
-        public void ScanForUnregisteredDependencies_UnregisteredDependency_IsScanned()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Act
-            _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
-
-            // Assert
-            this.m_MockScanningBehaviour.Verify(mock => mock.Invoke(this.m_DependencyCollection, typeof(IGenericDependency<object>)), Times.Once());
-            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
-        }
+        public void GetDependency_ClosedGenericDependencyIsNotRegisteredInCollection_ReturnsNull()
+            => this.m_DependencyCollection
+                .GetDependency(typeof(IGenericService<string>))
+                .Should()
+                .BeNull();
 
         [Fact]
-        public void ScanForUnregisteredDependencies_InvokedMultipleTimesWithUnregisteredDependency_IsScannedMultipleTimes()
-        {
-            // Arrange
-            this.m_AssemblyTypes.Add(typeof(ClosedGenericImplementation));
-
-            _ = this.m_DependencyCollection.AddAssemblyScan(this.m_AssemblyScan);
-
-            // Act
-            _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
-            _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
-            _ = this.m_DependencyCollection.ScanForUnregisteredDependencies(this.m_MockScanningBehaviour.Object);
-
-            // Assert
-            this.m_MockScanningBehaviour.Verify(mock => mock.Invoke(this.m_DependencyCollection, typeof(IGenericDependency<object>)), Times.Exactly(3));
-            this.m_MockScanningBehaviour.VerifyNoOtherCalls();
-        }
-
-        #endregion ScanForUnregisteredDependencies Tests
-
-        #region - - - - - - Validate Tests - - - - - -
+        public void GetDependency_DependencyIsRegisteredInCollection_ReturnsDependency()
+            => this.m_DependencyCollection
+                .GetDependency(typeof(IService))
+                .Should()
+                .Be(this.m_ExistingDependency);
 
         [Fact]
-        public void Validate_AllDependenciesResolved_DoesNotThrowException()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => _ = d.HasImplementationType<DependencyImplementation>());
-            _ = this.m_DependencyCollection.AddTransitiveDependency("Dependency").ResolveTransitiveDependency("Dependency");
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
-
-            // Assert
-            _ = _Exception.Should().BeNull();
-        }
+        public void GetDependency_OpenGenericDependencyIsRegisteredInCollection_ReturnsDependency()
+            => this.m_DependencyCollection
+                .GetDependency(typeof(IGenericService<>))
+                .Should()
+                .Be(this.m_ExistingOpenGenericDependency);
 
         [Fact]
-        public void Validate_AbstractDependencyRegisteredAsImplementation_ThrowsException()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped<IDependency>();
+        public void GetDependency_ClosedGenericDependencyIsRegisteredInCollection_ReturnsDependency()
+            => this.m_DependencyCollection
+                .GetDependency(typeof(IGenericService<object>))
+                .Should()
+                .Be(this.m_ExistingClosedGenericDependency);
 
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
-
-            // Assert
-            _ = _Exception.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void Validate_NonAbstractDependencyRegisteredAsImplementation_DoesNotThrowException()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped<DependencyImplementation>();
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
-
-            // Assert
-            _ = _Exception.Should().BeNull();
-        }
-
-        [Fact]
-        public void Validate_AbstractDependencyUnableToFindScannedImplementation_ThrowsException()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => d.ScanForImplementations());
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
-
-            // Assert
-            _ = _Exception.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void Validate_NonAbstractDependencyUnableToFindScannedImplementation_ThrowsException()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(DependencyImplementation), d => d.ScanForImplementations());
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
-
-            // Assert
-            _ = _Exception.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void Validate_NotAllDependenciesResolved_ThrowsException()
-        {
-            // Arrange
-            _ = this.m_DependencyCollection.AddScoped(typeof(IDependency), d => { });
-            _ = this.m_DependencyCollection.AddTransitiveDependency("Dependency");
-
-            // Act
-            var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());
-
-            // Assert
-            _ = _Exception.Should().NotBeNull();
-        }
-
-        #endregion Validate Tests
+        #endregion GetDependency Tests
 
     }
-
-    public class ClosedGenericImplementation : IGenericDependency<object> { }
-
-    public class ClosedGenericImplementation2 : IGenericDependency<object> { }
-
-    public class Decorator : IDependency { }
-
-    public class DependencyImplementation : IDependency { }
-
-    public class DependencyImplementation2 : IDependency { }
-
-    public interface IDependency { }
-
-    public interface IGenericDependency<TGeneric> { }
-
-    public class OpenGenericImplementation<TGeneric> : IGenericDependency<TGeneric> { }
-
-    public class OtherOpenGenericImplementation<TGeneric> { }
 
 }
