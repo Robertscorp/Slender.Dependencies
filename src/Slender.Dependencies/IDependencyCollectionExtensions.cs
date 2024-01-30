@@ -215,6 +215,9 @@ namespace Slender.Dependencies
             return dependencies;
         }
 
+        internal static ReadOnlyDependencyCollection Read(this IDependencyCollection dependencyCollection)
+            => new ReadOnlyDependencyCollection(dependencyCollection ?? throw new ArgumentNullException(nameof(dependencyCollection)));
+
         #endregion Methods
 
     }
