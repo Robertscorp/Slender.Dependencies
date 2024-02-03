@@ -205,7 +205,7 @@ namespace Slender.Dependencies
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection Validate<TDependencyCollection>(
             this TDependencyCollection dependencies,
-            Action<IDependencyCollectionValidationOptions> configurationAction = null) where TDependencyCollection : IDependencyCollection
+            Action<DependencyCollectionValidationOptions> configurationAction = null) where TDependencyCollection : IDependencyCollection
         {
             if (dependencies == null) throw new ArgumentNullException(nameof(dependencies));
 

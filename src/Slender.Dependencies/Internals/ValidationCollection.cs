@@ -53,7 +53,7 @@ namespace Slender.Dependencies.Internals
         {
             var _StringBuilder = new StringBuilder(64);
 
-            if (!this.Options.IgnoreMissingLifetimes)
+            if (!this.Options.ShouldIgnoreMissingLifetimes)
             {
                 var _DependenciesWithoutLifetime = this.m_Dependencies.Where(d => d.HasNoLifetime()).ToList();
                 if (_DependenciesWithoutLifetime.Any())
@@ -65,7 +65,7 @@ namespace Slender.Dependencies.Internals
                 }
             }
 
-            if (!this.Options.IgnoreMissingImplementations)
+            if (!this.Options.ShouldIgnoreMissingImplementations)
             {
                 var _DependenciesWithoutImplementations = this.m_Dependencies.Where(d => d.HasNoImplementations()).ToList();
                 if (_DependenciesWithoutImplementations.Any())
@@ -80,7 +80,7 @@ namespace Slender.Dependencies.Internals
                 }
             }
 
-            if (!this.Options.IgnoreInvalidImplementations)
+            if (!this.Options.ShouldIgnoreInvalidImplementations)
             {
                 var _DependenciesWithInvalidImplementations = this.m_Dependencies.Where(d => d.HasInvalidImplementations()).ToList();
                 if (_DependenciesWithInvalidImplementations.Any())
