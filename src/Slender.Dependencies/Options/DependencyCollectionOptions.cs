@@ -63,7 +63,7 @@ namespace Slender.Dependencies.Options
         /// <summary>
         /// Sets the strategy that will be used by the dependency collection when a duplicate dependency is being added by type.
         /// </summary>
-        /// <param name="dependencyExistsResolutionStrategy">The strategy that will be used by the dependency collection when a duplicate dependency is being added by type. Cannot be <see langword="null"/>.</param>
+        /// <param name="dependencyExistsResolutionStrategy">The strategy that will be used by the dependency collection when a duplicate dependency is being added by <see cref="Type"/>. Cannot be <see langword="null"/>.</param>
         /// <returns>Itself.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencyExistsResolutionStrategy"/> is <see langword="null"/>.</exception>
         public DependencyCollectionOptions HasResolutionStrategyForExistingDependency(DependencyExistsResolutionStrategy dependencyExistsResolutionStrategy)

@@ -44,7 +44,7 @@ namespace Slender.Dependencies
         /// Adds <paramref name="dependencyType"/> as a transient dependency.
         /// </summary>
         /// <param name="dependencies">The <see cref="IDependencyCollection"/> to update. Cannot be null.</param>
-        /// <param name="dependencyType">The type of dependency. Cannot be null.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be null.</param>
         /// <param name="configurationAction">An action to configure the dependency. Can be null.</param>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         /// <remarks>For more information on adding dependencies, see <see cref="AddDependency{TDependencyCollection}(TDependencyCollection, Type, Action{IDependency})"/>.</remarks>

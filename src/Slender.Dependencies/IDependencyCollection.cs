@@ -4,7 +4,7 @@ namespace Slender.Dependencies
 {
 
     /// <summary>
-    /// A collection of dependencies that can be used to configure a dependency injection container.
+    /// Contains dependencies that can be used to configure a dependency injection container.
     /// </summary>
     public interface IDependencyCollection
     {
@@ -20,7 +20,7 @@ namespace Slender.Dependencies
         /// <summary>
         /// Adds a new dependency with the specified <paramref name="dependencyType"/> to the dependency collection.
         /// </summary>
-        /// <param name="dependencyType">The type of dependency.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency.</param>
         /// <returns>The added <see cref="IDependency"/>.</returns>
         IDependency AddDependency(Type dependencyType);
 
@@ -45,7 +45,7 @@ namespace Slender.Dependencies
         /// <summary>
         /// Gets the dependency from the dependency collection.
         /// </summary>
-        /// <param name="dependencyType">The type of dependency.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency.</param>
         /// <returns>The <see cref="IDependency"/>.</returns>
         IDependency GetDependency(Type dependencyType);
 

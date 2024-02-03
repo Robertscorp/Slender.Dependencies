@@ -4,10 +4,10 @@ namespace Slender.Dependencies.Options
 {
 
     /// <summary>
-    /// Provides a new dependency instance.
+    /// Provides a new instance of the dependency.
     /// </summary>
-    /// <param name="dependencyType">The type of dependency.</param>
-    /// <returns>A new dependency instance.</returns>
+    /// <param name="dependencyType">The <see cref="Type"/> of dependency.</param>
+    /// <returns>A new instance of the dependency.</returns>
     public delegate IDependency DependencyProvider(Type dependencyType);
 
 }

@@ -143,7 +143,7 @@ namespace Slender.Dependencies
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
         /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="dependencyType">The type of dependency. Cannot be null.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be null.</param>
         /// <param name="configurationAction">An action to configure the dependency. Can be null.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/> or <paramref name="dependencyType"/> is null.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the dependency has already been registered.</exception>
@@ -170,7 +170,7 @@ namespace Slender.Dependencies
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
         /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="dependencyType">The type of dependency. Cannot be null.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be null.</param>
         /// <param name="configurationAction">An action to configure the dependency. Cannot be null.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="dependencyType"/>, or <paramref name="configurationAction"/> is null.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the dependency has not been registered.</exception>
@@ -195,7 +195,7 @@ namespace Slender.Dependencies
         /// Verifies that the dependency collection is valid.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
+        /// <param name="dependencies">The dependency collection to validate. Cannot be null.</param>
         /// <param name="configurationAction">An action to configure validation options. Can be null.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/> is null.</exception>
         /// <exception cref="Exception">Thrown when the dependency collection fails validation.</exception>

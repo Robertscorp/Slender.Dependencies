@@ -4,7 +4,7 @@ namespace Slender.Dependencies
 {
 
     /// <summary>
-    /// Contains all of the information required to register a dependency with a dependency injection container.
+    /// Contains the information required to register a dependency with a dependency injection container.
     /// </summary>
     public interface IDependency
     {
@@ -32,7 +32,7 @@ namespace Slender.Dependencies
         /// <summary>
         /// Gets the type of the dependency.
         /// </summary>
-        /// <returns>The type of the dependency.</returns>
+        /// <returns>The <see cref="Type"/> of the dependency.</returns>
         Type GetDependencyType();
 
         /// <summary>
