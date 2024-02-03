@@ -191,6 +191,9 @@ namespace Slender.Dependencies
             return dependencies;
         }
 
+        internal static ReadOnlyDependencyCollection Read(this IDependencyCollection dependencyCollection)
+            => new ReadOnlyDependencyCollection(dependencyCollection ?? throw new ArgumentNullException(nameof(dependencyCollection)));
+
         /// <summary>
         /// Verifies that the dependency collection is valid.
         /// </summary>
@@ -214,9 +217,6 @@ namespace Slender.Dependencies
 
             return dependencies;
         }
-
-        internal static ReadOnlyDependencyCollection Read(this IDependencyCollection dependencyCollection)
-            => new ReadOnlyDependencyCollection(dependencyCollection ?? throw new ArgumentNullException(nameof(dependencyCollection)));
 
         #endregion Methods
 
