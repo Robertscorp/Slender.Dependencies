@@ -20,10 +20,10 @@ namespace Slender.Dependencies
         /// Scans the specified assemblies for possible dependencies and implementation types.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="options">The options to determine scanning behaviour. Cannot be null.</param>
-        /// <param name="assemblies">The assemblies to add. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assemblies"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to update. Cannot be <see langword="null"/>.</param>
+        /// <param name="options">The options to determine scanning behaviour. Cannot be <see langword="null"/>.</param>
+        /// <param name="assemblies">The assemblies to add. Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assemblies"/> is <see langword="null"/>.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection AddAssemblies<TDependencyCollection>(
             this TDependencyCollection dependencies,
@@ -38,11 +38,11 @@ namespace Slender.Dependencies
         /// Scans the specified assemblies for possible dependencies and implementation types.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="options">The options to determine scanning behaviour. Cannot be null.</param>
-        /// <param name="assembly">An assembly to add. Cannot be null.</param>
-        /// <param name="additionalAssemblies">Additional assemblies to add. Cannot be null</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, <paramref name="assembly"/>, or <paramref name="additionalAssemblies"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to update. Cannot be <see langword="null"/>.</param>
+        /// <param name="options">The options to determine scanning behaviour. Cannot be <see langword="null"/>.</param>
+        /// <param name="assembly">An assembly to add. Cannot be <see langword="null"/>.</param>
+        /// <param name="additionalAssemblies">Additional assemblies to add. Cannot be <see langword="null"/></param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, <paramref name="assembly"/>, or <paramref name="additionalAssemblies"/> is <see langword="null"/>.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection AddAssemblies<TDependencyCollection>(
             this TDependencyCollection dependencies,
@@ -60,10 +60,10 @@ namespace Slender.Dependencies
         /// Scans the specified assemblies for possible dependencies and implementation types.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="options">The options to determine scanning behaviour. Cannot be null.</param>
-        /// <param name="assembly">The assembly to add. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assembly"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to update. Cannot be <see langword="null"/>.</param>
+        /// <param name="options">The options to determine scanning behaviour. Cannot be <see langword="null"/>.</param>
+        /// <param name="assembly">The assembly to add. Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assembly"/> is <see langword="null"/>.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection AddAssembly<TDependencyCollection>(
             this TDependencyCollection dependencies,
@@ -78,10 +78,10 @@ namespace Slender.Dependencies
         /// Visits the specified <see cref="IAssemblyScan"/> for possible dependencies and implementation types.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="options">The options to determine scanning behaviour. Cannot be null.</param>
-        /// <param name="assemblyScan">The assembly scan to add. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assemblyScan"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to update. Cannot be <see langword="null"/>.</param>
+        /// <param name="options">The options to determine scanning behaviour. Cannot be <see langword="null"/>.</param>
+        /// <param name="assemblyScan">The assembly scan to add. Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assemblyScan"/> is <see langword="null"/>.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection AddAssemblyScan<TDependencyCollection>(
             this TDependencyCollection dependencies,
@@ -142,10 +142,10 @@ namespace Slender.Dependencies
         /// Adds the specified <paramref name="dependencyType"/> as a dependency.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be null.</param>
-        /// <param name="configurationAction">An action to configure the dependency. Can be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/> or <paramref name="dependencyType"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to update. Cannot be <see langword="null"/>.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be <see langword="null"/>.</param>
+        /// <param name="configurationAction">An action to configure the dependency. Can be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/> or <paramref name="dependencyType"/> is <see langword="null"/>.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the dependency has already been registered.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         /// <remarks>If the dependency has already been registered, use <see cref="ConfigureDependency{TDependencyCollection}(TDependencyCollection, Type, Action{IDependency})"/> instead.</remarks>
@@ -169,10 +169,10 @@ namespace Slender.Dependencies
         /// Configures a dependency.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to update. Cannot be null.</param>
-        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be null.</param>
-        /// <param name="configurationAction">An action to configure the dependency. Cannot be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="dependencyType"/>, or <paramref name="configurationAction"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to update. Cannot be <see langword="null"/>.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be <see langword="null"/>.</param>
+        /// <param name="configurationAction">An action to configure the dependency. Cannot be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="dependencyType"/>, or <paramref name="configurationAction"/> is <see langword="null"/>.</exception>
         /// <exception cref="InvalidOperationException">Thrown when the dependency has not been registered.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         /// <remarks>If the dependency has not been registered, use <see cref="AddDependency{TDependencyCollection}(TDependencyCollection, Type, Action{IDependency})"/> instead.</remarks>
@@ -198,9 +198,9 @@ namespace Slender.Dependencies
         /// Verifies that the dependency collection is valid.
         /// </summary>
         /// <typeparam name="TDependencyCollection">The type of dependency collection.</typeparam>
-        /// <param name="dependencies">The dependency collection to validate. Cannot be null.</param>
-        /// <param name="configurationAction">An action to configure validation options. Can be null.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/> is null.</exception>
+        /// <param name="dependencies">The dependency collection to validate. Cannot be <see langword="null"/>.</param>
+        /// <param name="configurationAction">An action to configure validation options. Can be <see langword="null"/>.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/> is <see langword="null"/>.</exception>
         /// <exception cref="Exception">Thrown when the dependency collection fails validation.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection Validate<TDependencyCollection>(

@@ -26,7 +26,7 @@ namespace Slender.Dependencies
         /// <summary>
         /// Initialises a new instance of the <see cref="DependencyCollection"/> class.
         /// </summary>
-        /// <param name="configureAction">An action to configure options for the dependency collection. Can be null.</param>
+        /// <param name="configureAction">An action to configure options for the dependency collection. Can be <see langword="null"/>.</param>
         public DependencyCollection(Action<DependencyCollectionOptions> configureAction = null)
             => configureAction?.Invoke(this.m_Options);
 

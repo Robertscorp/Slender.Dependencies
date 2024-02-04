@@ -7,7 +7,7 @@ namespace Slender.Dependencies
     /// A factory used to produce an instance of the specified <see cref="Type"/>.
     /// </summary>
     /// <param name="type">The type to produce.</param>
-    /// <returns>An instance of the specified type, or null.</returns>
+    /// <returns>An instance of the specified type, or <see langword="null"/>.</returns>
     public delegate object DependencyFactory(Type type);
 
     /// <summary>
@@ -23,7 +23,7 @@ namespace Slender.Dependencies
         /// </summary>
         /// <typeparam name="TDependency">The type of dependency to produce.</typeparam>
         /// <param name="dependencyFactory">The factory used to produce the instance.</param>
-        /// <returns>An instance of <typeparamref name="TDependency"/>, or null.</returns>
+        /// <returns>An instance of <typeparamref name="TDependency"/>, or <see langword="null"/>.</returns>
         public static TDependency GetInstance<TDependency>(this DependencyFactory dependencyFactory)
             => (TDependency)dependencyFactory(typeof(TDependency));
 
