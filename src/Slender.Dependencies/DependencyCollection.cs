@@ -44,6 +44,7 @@ namespace Slender.Dependencies
             this.m_DependenciesByType[_DependencyType]
                 = this.m_DependenciesByType.TryGetValue(_DependencyType, out var _ExistingDependency)
                     ? this.m_Options.MergeResolutionStrategy(_ExistingDependency, dependency)
+                        ?? throw new Exception("Merged dependency cannot be null.")
                     : dependency;
         }
 
@@ -58,7 +59,7 @@ namespace Slender.Dependencies
             else
                 _Dependency = this.m_Options.DependencyProvider(dependencyType);
 
-            this.m_DependenciesByType[dependencyType] = _Dependency;
+            this.m_DependenciesByType[dependencyType] = _Dependency ?? throw new Exception("Added dependency cannot be null.");
             return _Dependency;
         }
 
