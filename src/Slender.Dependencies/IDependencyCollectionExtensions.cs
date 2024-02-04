@@ -82,6 +82,7 @@ namespace Slender.Dependencies
         /// <param name="options">The options to determine scanning behaviour. Cannot be <see langword="null"/>.</param>
         /// <param name="assemblyScan">The assembly scan to add. Cannot be <see langword="null"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencies"/>, <paramref name="options"/>, or <paramref name="assemblyScan"/> is <see langword="null"/>.</exception>
+        /// <exception cref="Exception">Thrown when <paramref name="options"/> is empty.</exception>
         /// <returns>The specified <paramref name="dependencies"/>.</returns>
         public static TDependencyCollection AddAssemblyScan<TDependencyCollection>(
             this TDependencyCollection dependencies,
@@ -91,6 +92,8 @@ namespace Slender.Dependencies
             if (dependencies == null) throw new ArgumentNullException(nameof(dependencies));
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (assemblyScan == null) throw new ArgumentNullException(nameof(assemblyScan));
+
+            options.Validate();
 
             var _Dependencies = new DependencyCollectionScanningDecorator(dependencies);
             var _Visitor = new DependencyAssemblyScanVisitor();
