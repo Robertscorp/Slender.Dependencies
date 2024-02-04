@@ -402,7 +402,7 @@ namespace Slender.Dependencies.Tests.Unit
         public void Validate_DontIgnoreInvalidImplementations_ValidationFails()
         {
             // Arrange
-            _ = this.m_DependencyCollection.AddDependency(typeof(string), d => d.HasLifetime(TestDependencyLifetime.Instance(false)));
+            _ = this.m_DependencyCollection.AddDependency(typeof(string), d => d.HasImplementationInstance(string.Empty).HasLifetime(TestDependencyLifetime.Instance(false)));
 
             // Act
             var _Exception = Record.Exception(() => this.m_DependencyCollection.Validate());

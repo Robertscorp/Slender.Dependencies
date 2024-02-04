@@ -132,7 +132,14 @@ namespace Slender.Dependencies.Tests.Unit
         public void AddToDependency_DependencySpecified_AddsToDependency()
         {
             // Arrange
-            var _Expected = new TestDependency(typeof(string));
+            var _Dependency = new TestDependency(typeof(string));
+            var _Expected = new TestDependency(typeof(string))
+            {
+                Decorators = new() { typeof(int), typeof(object), typeof(IService) },
+                Implementations = new() { typeof(ServiceImplementation), typeof(ServiceImplementation2) },
+                Lifetime = TestDependencyLifetime.Instance(true),
+                DependencyType = typeof(string)
+            };
 
             this.m_Dependency.AddDecorator(typeof(int));
             this.m_Dependency.AddDecorator(typeof(object));
@@ -142,10 +149,10 @@ namespace Slender.Dependencies.Tests.Unit
             this.m_Dependency.SetLifetime(TestDependencyLifetime.Instance(true));
 
             // Act
-            this.m_Dependency.AddToDependency(_Expected);
+            this.m_Dependency.AddToDependency(_Dependency);
 
             // Assert
-            _ = this.m_Dependency.Read().Should().BeEquivalentTo(_Expected);
+            _ = _Dependency.Should().BeEquivalentTo(_Expected);
         }
 
         #endregion AddToDependency Tests
