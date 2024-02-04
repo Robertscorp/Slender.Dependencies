@@ -56,7 +56,7 @@ namespace Slender.Dependencies.Internals
             => throw new InvalidOperationException("Cannot add transitive dependencies during assembly scanning.");
 
         public IDependency GetDependency(Type dependencyType)
-            => this.m_Dependencies.GetDependency(dependencyType);
+            => this.DependenciesByType.TryGetValue(dependencyType, out var _Dependency) ? _Dependency : null;
 
         #endregion Methods
 
