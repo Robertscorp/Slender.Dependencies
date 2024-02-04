@@ -141,6 +141,19 @@ namespace Slender.Dependencies.Tests.Unit
             this.m_MockDependencyMergeStrategy.Verify(mock => mock.Invoke(this.m_ExistingClosedGenericDependency, _Dependency));
         }
 
+        [Fact]
+        public void AddDependency_IDependency_MergeStrategyReturnsNullDependency_ThrowsException()
+        {
+            // Arrange
+            this.m_MockDependencyMergeStrategy.Reset();
+
+            // Act
+            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(new TestDependency(typeof(IService))));
+
+            // Assert
+            _ = _Exception.Should().BeOfType<Exception>();
+        }
+
         #endregion AddDependency(IDependency) Tests
 
         #region - - - - - - AddDependency(Type) Tests - - - - - -
@@ -235,6 +248,32 @@ namespace Slender.Dependencies.Tests.Unit
             _ = this.m_DependencyCollection.Read().Should().BeEquivalentTo(_Expected);
 
             this.m_MockDependencyExistsStrategy.Verify(mock => mock.Invoke(this.m_MockDependencyProvider.Object, this.m_ExistingClosedGenericDependency, _ExpectedDependency.DependencyType));
+        }
+
+        [Fact]
+        public void AddDependency_Type_DependencyProviderReturnsNullDependency_ThrowsException()
+        {
+            // Arrange
+            this.m_MockDependencyProvider.Reset();
+
+            // Act
+            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(string)));
+
+            // Assert
+            _ = _Exception.Should().BeOfType<Exception>();
+        }
+
+        [Fact]
+        public void AddDependency_Type_DependencyExistsStrategyReturnsNullDependency_ThrowsException()
+        {
+            // Arrange
+            this.m_MockDependencyExistsStrategy.Reset();
+
+            // Act
+            var _Exception = Record.Exception(() => this.m_DependencyCollection.AddDependency(typeof(IService)));
+
+            // Assert
+            _ = _Exception.Should().BeOfType<Exception>();
         }
 
         #endregion AddDependency(Type) Tests
