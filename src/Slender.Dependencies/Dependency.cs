@@ -29,9 +29,9 @@ namespace Slender.Dependencies
         /// <summary>
         /// Initialises a new instance of the <see cref="Dependency"/> class.
         /// </summary>
-        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be null.</param>
+        /// <param name="dependencyType">The <see cref="Type"/> of dependency. Cannot be <see langword="null"/>.</param>
         /// <param name="autoLockLifetime">When enabled, prevents the lifetime of the dependency from changing once it has been set.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencyType"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dependencyType"/> is <see langword="null"/>.</exception>
         public Dependency(Type dependencyType, bool autoLockLifetime)
         {
             this.m_AutoLockLifetime = autoLockLifetime;
