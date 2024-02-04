@@ -61,7 +61,7 @@ namespace Slender.Dependencies.Internals
                     _ = _StringBuilder.AppendLine("The following dependencies don't have a lifetime:");
 
                     foreach (var _Dependency in _DependenciesWithoutLifetime)
-                        _ = _StringBuilder.Append(" - ").AppendLine(_Dependency.GetDependencyType().Name);
+                        _ = _StringBuilder.Append(" - ").AppendLine(_Dependency.DependencyType.Name);
                 }
             }
 
@@ -76,7 +76,7 @@ namespace Slender.Dependencies.Internals
                     _ = _StringBuilder.AppendLine("The following dependencies don't have any implementations:");
 
                     foreach (var _Dependency in _DependenciesWithoutImplementations)
-                        _ = _StringBuilder.Append(" - ").AppendLine(_Dependency.GetDependencyType().Name);
+                        _ = _StringBuilder.Append(" - ").AppendLine(_Dependency.DependencyType.Name);
                 }
             }
 
@@ -91,7 +91,7 @@ namespace Slender.Dependencies.Internals
                     _ = _StringBuilder.AppendLine("The following dependencies have invalid implementations:");
 
                     foreach (var _Dependency in _DependenciesWithInvalidImplementations)
-                        _ = _StringBuilder.Append(" - ").AppendLine(_Dependency.GetDependencyType().Name);
+                        _ = _StringBuilder.Append(" - ").AppendLine(_Dependency.DependencyType.Name);
                 }
             }
 
