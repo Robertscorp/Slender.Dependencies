@@ -74,6 +74,13 @@ namespace Slender.Dependencies.Tests.Unit
                 .BeOfType<ArgumentNullException>();
 
         [Fact]
+        public void AddAssemblyScan_ScanningOptionsAreEmpty_ThrowsException()
+            => Record
+                .Exception(() => this.m_DependencyCollection.AddAssemblyScan(new(), this.m_AssemblyScan))
+                .Should()
+                .BeOfType<Exception>();
+
+        [Fact]
         public void AddAssemblyScan_AddingScanWithExistingDependency_IgnoresExistingDependencies()
         {
             // Arrange
